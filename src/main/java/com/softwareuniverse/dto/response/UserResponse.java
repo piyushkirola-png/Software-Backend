@@ -1,6 +1,8 @@
 package com.softwareuniverse.dto.response;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,5 +20,11 @@ public class UserResponse {
   private String avatarUrl;
   private String role;
   private Boolean isActive;
+  private String gender;
+  private String currentAddress;
+  private String city;
+  private String state;
+  private String country;
+  private String pincode;
   private LocalDateTime createdAt;
 }

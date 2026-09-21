@@ -21,5 +21,6 @@ public class AddressResponse {
   private String pincode;
   private String country;
   private Boolean isDefault;
+  private String gstNumber;
   private LocalDateTime createdAt;
 }

@@ -88,10 +88,15 @@ public class InvoicePdfServiceImpl implements InvoicePdfService {
       Paragraph buyerHeading = new Paragraph("BILL TO", boldFont);
       buyerHeading.setSpacingBefore(10);
       doc.add(buyerHeading);
-      doc.add(new Paragraph(invoice.getBuyerName() != null ? invoice.getBuyerName() : "-", normalFont));
-      doc.add(new Paragraph(invoice.getBuyerEmail() != null ? invoice.getBuyerEmail() : "-", normalFont));
-      if (invoice.getBuyerPhone() != null) doc.add(new Paragraph(invoice.getBuyerPhone(), normalFont));
-      if (invoice.getBuyerAddress() != null) doc.add(new Paragraph(invoice.getBuyerAddress(), normalFont));
+      doc.add(
+          new Paragraph(invoice.getBuyerName() != null ? invoice.getBuyerName() : "-", normalFont));
+      doc.add(
+          new Paragraph(
+              invoice.getBuyerEmail() != null ? invoice.getBuyerEmail() : "-", normalFont));
+      if (invoice.getBuyerPhone() != null)
+        doc.add(new Paragraph(invoice.getBuyerPhone(), normalFont));
+      if (invoice.getBuyerAddress() != null)
+        doc.add(new Paragraph(invoice.getBuyerAddress(), normalFont));
       if (invoice.getBuyerGstin() != null && !invoice.getBuyerGstin().isBlank())
         doc.add(new Paragraph("GSTIN: " + invoice.getBuyerGstin(), normalFont));
       doc.add(Chunk.NEWLINE);
@@ -183,12 +188,14 @@ public class InvoicePdfServiceImpl implements InvoicePdfService {
     return c;
   }
 
-  private void addTotalRow(PdfPTable t, String label, BigDecimal amount, Font labelFont, Font valueFont) {
+  private void addTotalRow(
+      PdfPTable t, String label, BigDecimal amount, Font labelFont, Font valueFont) {
     PdfPCell c1 = new PdfPCell(new Phrase(label, labelFont));
     c1.setBorder(Rectangle.NO_BORDER);
     c1.setPadding(4);
     c1.setHorizontalAlignment(Element.ALIGN_RIGHT);
-    PdfPCell c2 = new PdfPCell(new Phrase("₹" + (amount != null ? amount : BigDecimal.ZERO), valueFont));
+    PdfPCell c2 =
+        new PdfPCell(new Phrase("₹" + (amount != null ? amount : BigDecimal.ZERO), valueFont));
     c2.setBorder(Rectangle.NO_BORDER);
     c2.setPadding(4);
     c2.setHorizontalAlignment(Element.ALIGN_RIGHT);

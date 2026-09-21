@@ -113,8 +113,7 @@ public class ReviewServiceImpl implements ReviewService {
       product.setRatingAvg(0.0);
       product.setRatingCount(0);
     } else {
-      double avg =
-          approved.stream().mapToInt(Review::getRating).average().orElse(0.0);
+      double avg = approved.stream().mapToInt(Review::getRating).average().orElse(0.0);
       product.setRatingAvg(Math.round(avg * 10.0) / 10.0);
       product.setRatingCount(approved.size());
     }

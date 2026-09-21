@@ -11,7 +11,6 @@ import com.softwareuniverse.entity.User;
 import com.softwareuniverse.repository.RevokedTokenRepository;
 import com.softwareuniverse.repository.UserRepository;
 import com.softwareuniverse.security.JwtTokenProvider;
-import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;

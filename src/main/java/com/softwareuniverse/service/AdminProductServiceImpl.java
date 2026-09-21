@@ -42,7 +42,8 @@ public class AdminProductServiceImpl implements AdminProductService {
           products.getContent().stream()
               .filter(p -> Boolean.valueOf(active).equals(p.getIsActive()))
               .toList();
-      return new PageImpl<>(filtered.stream().map(this::toResponse).toList(), pageable, filtered.size());
+      return new PageImpl<>(
+          filtered.stream().map(this::toResponse).toList(), pageable, filtered.size());
     }
 
     return products.map(this::toResponse);
@@ -66,9 +67,10 @@ public class AdminProductServiceImpl implements AdminProductService {
             .findById(request.getCategoryId())
             .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
-    String slug = (request.getSlug() != null && !request.getSlug().isBlank())
-        ? slugify(request.getSlug())
-        : slugify(request.getTitle());
+    String slug =
+        (request.getSlug() != null && !request.getSlug().isBlank())
+            ? slugify(request.getSlug())
+            : slugify(request.getTitle());
 
     if (productRepository.existsBySlug(slug)) {
       throw new RuntimeException("Product with this slug already exists: " + slug);
@@ -254,6 +256,7 @@ public class AdminProductServiceImpl implements AdminProductService {
         .stockQuantity(p.getStockQuantity())
         .isFeatured(p.getIsFeatured())
         .isActive(p.getIsActive())
+        .displayOrder(p.getDisplayOrder())
         .ratingAvg(p.getRatingAvg())
         .ratingCount(p.getRatingCount())
         .variants(variants)
@@ -263,8 +266,6 @@ public class AdminProductServiceImpl implements AdminProductService {
   private Integer calculateDiscount(BigDecimal mrp, BigDecimal price) {
     if (mrp == null || price == null || mrp.compareTo(BigDecimal.ZERO) == 0) return 0;
     BigDecimal diff = mrp.subtract(price);
-    return diff.multiply(BigDecimal.valueOf(100))
-        .divide(mrp, 0, RoundingMode.HALF_UP)
-        .intValue();
+    return diff.multiply(BigDecimal.valueOf(100)).divide(mrp, 0, RoundingMode.HALF_UP).intValue();
   }
 }

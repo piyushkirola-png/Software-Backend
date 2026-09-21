@@ -81,8 +81,7 @@ public class CouponServiceImpl implements CouponService {
     if (coupon.getUsageLimit() != null && coupon.getUsedCount() >= coupon.getUsageLimit()) {
       throw new RuntimeException("Coupon usage limit reached");
     }
-    if (coupon.getMinOrderAmount() != null
-        && subtotal.compareTo(coupon.getMinOrderAmount()) < 0) {
+    if (coupon.getMinOrderAmount() != null && subtotal.compareTo(coupon.getMinOrderAmount()) < 0) {
       throw new RuntimeException(
           "Minimum order amount ₹" + coupon.getMinOrderAmount() + " required");
     }

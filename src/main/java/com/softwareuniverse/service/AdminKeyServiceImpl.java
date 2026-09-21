@@ -105,8 +105,7 @@ public class AdminKeyServiceImpl implements AdminKeyService {
 
         // Skip header row (first row, if it contains "key" or "license")
         if (lineNumber == 1
-            && (line.toLowerCase().contains("license")
-                || line.toLowerCase().contains("key"))) {
+            && (line.toLowerCase().contains("license") || line.toLowerCase().contains("key"))) {
           continue;
         }
 
@@ -260,9 +259,10 @@ public class AdminKeyServiceImpl implements AdminKeyService {
         licenseKeyRepository.findByProductIdAndStatus(productId, KeyStatus.AVAILABLE);
 
     if (variantId != null) {
-      keys = keys.stream()
-          .filter(k -> k.getVariant() != null && k.getVariant().getId().equals(variantId))
-          .toList();
+      keys =
+          keys.stream()
+              .filter(k -> k.getVariant() != null && k.getVariant().getId().equals(variantId))
+              .toList();
     }
 
     StringBuilder sb = new StringBuilder();
@@ -300,10 +300,18 @@ public class AdminKeyServiceImpl implements AdminKeyService {
   private KeyStockResponse buildStock(Product p, ProductVariant v) {
     long available, reserved, sold, revoked;
     if (v != null) {
-      available = licenseKeyRepository.countByProductIdAndVariantIdAndStatus(p.getId(), v.getId(), KeyStatus.AVAILABLE);
-      reserved = licenseKeyRepository.countByProductIdAndVariantIdAndStatus(p.getId(), v.getId(), KeyStatus.RESERVED);
-      sold = licenseKeyRepository.countByProductIdAndVariantIdAndStatus(p.getId(), v.getId(), KeyStatus.SOLD);
-      revoked = licenseKeyRepository.countByProductIdAndVariantIdAndStatus(p.getId(), v.getId(), KeyStatus.REVOKED);
+      available =
+          licenseKeyRepository.countByProductIdAndVariantIdAndStatus(
+              p.getId(), v.getId(), KeyStatus.AVAILABLE);
+      reserved =
+          licenseKeyRepository.countByProductIdAndVariantIdAndStatus(
+              p.getId(), v.getId(), KeyStatus.RESERVED);
+      sold =
+          licenseKeyRepository.countByProductIdAndVariantIdAndStatus(
+              p.getId(), v.getId(), KeyStatus.SOLD);
+      revoked =
+          licenseKeyRepository.countByProductIdAndVariantIdAndStatus(
+              p.getId(), v.getId(), KeyStatus.REVOKED);
     } else {
       available = licenseKeyRepository.countByProductIdAndStatus(p.getId(), KeyStatus.AVAILABLE);
       reserved = licenseKeyRepository.countByProductIdAndStatus(p.getId(), KeyStatus.RESERVED);

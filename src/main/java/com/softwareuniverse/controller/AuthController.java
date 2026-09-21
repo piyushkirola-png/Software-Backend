@@ -31,8 +31,7 @@ public class AuthController {
   }
 
   @PostMapping("/login")
-  public ResponseEntity<ApiResponse<AuthResponse>> login(
-      @Valid @RequestBody LoginRequest request) {
+  public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
     AuthResponse response = authService.login(request);
     return ResponseEntity.ok(ApiResponse.success("Login successful", response));
   }
@@ -44,8 +43,7 @@ public class AuthController {
   }
 
   @PostMapping("/otp/verify")
-  public ResponseEntity<ApiResponse<Void>> verifyOtp(
-      @Valid @RequestBody VerifyOtpRequest request) {
+  public ResponseEntity<ApiResponse<Void>> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
     otpService.verifyOtp(request.getEmail(), request.getCode());
     return ResponseEntity.ok(ApiResponse.success("OTP verified", null));
   }

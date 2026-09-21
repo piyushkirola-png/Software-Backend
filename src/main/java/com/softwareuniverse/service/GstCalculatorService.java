@@ -24,8 +24,7 @@ public class GstCalculatorService {
   public GstBreakdown calculate(BigDecimal taxableAmount, String buyerState) {
     if (taxableAmount == null) taxableAmount = BigDecimal.ZERO;
 
-    BigDecimal totalTax =
-        taxableAmount.multiply(gstRate).setScale(2, RoundingMode.HALF_UP);
+    BigDecimal totalTax = taxableAmount.multiply(gstRate).setScale(2, RoundingMode.HALF_UP);
 
     boolean sameState =
         buyerState != null

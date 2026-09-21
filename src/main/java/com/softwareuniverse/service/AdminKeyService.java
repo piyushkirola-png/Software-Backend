@@ -14,7 +14,8 @@ public interface AdminKeyService {
   KeyResponse addKey(KeyUploadRequest request);
 
   /** Bulk upload via CSV. Format: license_key[,notes] — one per line. */
-  KeyBatchUploadResponse bulkUploadCsv(MultipartFile file, Long productId, Long variantId, String batchName);
+  KeyBatchUploadResponse bulkUploadCsv(
+      MultipartFile file, Long productId, Long variantId, String batchName);
 
   /** All keys (paginated), with optional filters. */
   Page<KeyResponse> getAllKeys(int page, int size, String status, Long productId, Long variantId);

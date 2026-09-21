@@ -25,14 +25,16 @@ public class UserAddressController {
   @GetMapping
   public ResponseEntity<ApiResponse<List<AddressResponse>>> list(Principal principal) {
     return ResponseEntity.ok(
-        ApiResponse.success("Addresses fetched", addressService.getMyAddresses(currentUserId(principal))));
+        ApiResponse.success(
+            "Addresses fetched", addressService.getMyAddresses(currentUserId(principal))));
   }
 
   @GetMapping("/{id}")
   public ResponseEntity<ApiResponse<AddressResponse>> get(
       Principal principal, @PathVariable Long id) {
     return ResponseEntity.ok(
-        ApiResponse.success("Address fetched", addressService.getAddress(currentUserId(principal), id)));
+        ApiResponse.success(
+            "Address fetched", addressService.getAddress(currentUserId(principal), id)));
   }
 
   @PostMapping
@@ -48,7 +50,8 @@ public class UserAddressController {
       Principal principal, @PathVariable Long id, @Valid @RequestBody AddressRequest request) {
     return ResponseEntity.ok(
         ApiResponse.success(
-            "Address updated", addressService.updateAddress(currentUserId(principal), id, request)));
+            "Address updated",
+            addressService.updateAddress(currentUserId(principal), id, request)));
   }
 
   @DeleteMapping("/{id}")
@@ -61,7 +64,8 @@ public class UserAddressController {
   public ResponseEntity<ApiResponse<AddressResponse>> setDefault(
       Principal principal, @PathVariable Long id) {
     return ResponseEntity.ok(
-        ApiResponse.success("Default set", addressService.setDefault(currentUserId(principal), id)));
+        ApiResponse.success(
+            "Default set", addressService.setDefault(currentUserId(principal), id)));
   }
 
   private Long currentUserId(Principal principal) {

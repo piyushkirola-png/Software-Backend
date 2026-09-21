@@ -2,7 +2,6 @@ package com.softwareuniverse.service;
 
 import com.softwareuniverse.dto.request.CouponRequest;
 import com.softwareuniverse.dto.response.CouponResponse;
-import java.util.List;
 import org.springframework.data.domain.Page;
 
 public interface AdminCouponService {

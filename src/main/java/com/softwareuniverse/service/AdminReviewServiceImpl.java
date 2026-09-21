@@ -29,7 +29,9 @@ public class AdminReviewServiceImpl implements AdminReviewService {
     }
 
     if ("pending".equalsIgnoreCase(status)) {
-      return reviewRepository.findByIsApprovedFalseOrderByCreatedAtDesc(pageable).map(this::toResponse);
+      return reviewRepository
+          .findByIsApprovedFalseOrderByCreatedAtDesc(pageable)
+          .map(this::toResponse);
     }
 
     // approved
@@ -37,7 +39,8 @@ public class AdminReviewServiceImpl implements AdminReviewService {
         reviewRepository.findAll(pageable).getContent().stream()
             .filter(r -> Boolean.TRUE.equals(r.getIsApproved()))
             .toList();
-    return new PageImpl<>(approved.stream().map(this::toResponse).toList(), pageable, approved.size());
+    return new PageImpl<>(
+        approved.stream().map(this::toResponse).toList(), pageable, approved.size());
   }
 
   @Override

@@ -66,8 +66,7 @@ public class EmailService {
   public void sendOrderConfirmation(Order order, List<LicenseKey> keys, Invoice invoice) {
     try {
       MimeMessage message = mailSender.createMimeMessage();
-      MimeMessageHelper helper =
-          new MimeMessageHelper(message, true, "UTF-8");
+      MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
       helper.setFrom(fromEmail);
       helper.setTo(order.getCustomerEmail());
       helper.setSubject("Order Confirmed — " + order.getOrderNumber() + " | Software Universe");

@@ -21,8 +21,7 @@ public class InvoiceNumberServiceImpl implements InvoiceNumberService {
     int fyStartYear =
         today.getMonthValue() >= Month.APRIL.getValue() ? today.getYear() : today.getYear() - 1;
     int fyEndYear = fyStartYear + 1;
-    String fyCode =
-        String.format("%d-%02d", fyStartYear, fyEndYear % 100); // e.g. 2026-27
+    String fyCode = String.format("%d-%02d", fyStartYear, fyEndYear % 100); // e.g. 2026-27
 
     long count = invoiceRepository.count();
     long next = count + 1;

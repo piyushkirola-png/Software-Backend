@@ -9,7 +9,6 @@ import com.softwareuniverse.entity.*;
 import com.softwareuniverse.paymentgateway.PaymentGateway;
 import com.softwareuniverse.repository.*;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +51,8 @@ public class PaymentServiceImpl implements PaymentService {
         gateways.stream()
             .filter(g -> g.getGatewayKey().equalsIgnoreCase(request.getGateway()))
             .findFirst()
-            .orElseThrow(() -> new RuntimeException("Unsupported gateway: " + request.getGateway()));
+            .orElseThrow(
+                () -> new RuntimeException("Unsupported gateway: " + request.getGateway()));
 
     Payment payment = new Payment();
     payment.setOrder(order);
@@ -102,7 +102,8 @@ public class PaymentServiceImpl implements PaymentService {
     Payment payment =
         paymentRepository
             .findByGatewayOrderId(gatewayOrderId)
-            .orElseThrow(() -> new ResourceNotFoundException("Payment not found for gateway order"));
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Payment not found for gateway order"));
 
     if (payment.getStatus() == PaymentStatus.SUCCESS) {
       log.info("Payment already marked SUCCESS — skipping");
@@ -137,7 +138,8 @@ public class PaymentServiceImpl implements PaymentService {
     try {
       invoice = generateInvoice(order);
     } catch (Exception e) {
-      log.error("Invoice generation failed for order {}: {}", order.getOrderNumber(), e.getMessage(), e);
+      log.error(
+          "Invoice generation failed for order {}: {}", order.getOrderNumber(), e.getMessage(), e);
     }
 
     try {
@@ -155,7 +157,8 @@ public class PaymentServiceImpl implements PaymentService {
     Payment payment =
         paymentRepository
             .findByGatewayOrderId(gatewayOrderId)
-            .orElseThrow(() -> new ResourceNotFoundException("Payment not found for gateway order"));
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Payment not found for gateway order"));
 
     if (payment.getStatus() == PaymentStatus.FAILED) return;
 

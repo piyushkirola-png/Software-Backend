@@ -39,6 +39,7 @@ public class SecurityConfig {
     "/api/payments/cashfree/**",
     "/api/payments/payu/**",
     "/api/payments/sabpaisa/**",
+    "/uploads/**",
     "/software/**",
     "/assets/**",
     "/swagger-ui/**",

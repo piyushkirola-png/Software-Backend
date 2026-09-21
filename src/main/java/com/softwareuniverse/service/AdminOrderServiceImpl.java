@@ -5,12 +5,19 @@ import com.softwareuniverse.dto.response.OrderItemResponse;
 import com.softwareuniverse.dto.response.OrderResponse;
 import com.softwareuniverse.entity.*;
 import com.softwareuniverse.repository.*;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +32,10 @@ public class AdminOrderServiceImpl implements AdminOrderService {
   private final LicenseKeyRepository licenseKeyRepository;
   private final InvoiceRepository invoiceRepository;
   private final EmailService emailService;
+  private final InvoicePdfService invoicePdfService;
+
+  @Value("${app.uploads.dir:uploads}")
+  private String uploadsDir;
 
   @Override
   @Transactional(readOnly = true)
@@ -73,7 +84,11 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         orderRepository.findAll().stream()
             .filter(o -> o.getCreatedAt() != null)
             .filter(o -> !o.getCreatedAt().isBefore(fromTs) && !o.getCreatedAt().isAfter(toTs))
-            .filter(o -> status == null || status.isBlank() || o.getStatus().name().equalsIgnoreCase(status))
+            .filter(
+                o ->
+                    status == null
+                        || status.isBlank()
+                        || o.getStatus().name().equalsIgnoreCase(status))
             .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
             .toList();
 
@@ -82,9 +97,7 @@ public class AdminOrderServiceImpl implements AdminOrderService {
     List<Order> pageContent = filtered.subList(start, end);
 
     return new PageImpl<>(
-        pageContent.stream().map(this::toResponse).toList(),
-        pageable,
-        filtered.size());
+        pageContent.stream().map(this::toResponse).toList(), pageable, filtered.size());
   }
 
   @Override
@@ -161,6 +174,84 @@ public class AdminOrderServiceImpl implements AdminOrderService {
     log.info("Order confirmation email re-sent for {}", o.getOrderNumber());
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public byte[] getInvoicePdf(Long orderId) {
+    Order order =
+        orderRepository
+            .findById(orderId)
+            .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+    Invoice invoice =
+        invoiceRepository
+            .findByOrderId(orderId)
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "No invoice exists for this order. Invoices are generated only for SUCCESS orders."));
+
+    if (invoice.getPdfPath() == null || invoice.getPdfPath().isBlank()) {
+      throw new ResourceNotFoundException("Invoice PDF has not been generated for this order.");
+    }
+
+    try {
+      // pdfPath is like "/uploads/invoices/SU-2026-27-0001.pdf"
+      // Strip leading "/uploads/" → "invoices/SU-2026-27-0001.pdf"
+      String relative = invoice.getPdfPath().replaceFirst("^/uploads/", "");
+      Path filePath = Paths.get(uploadsDir, relative).toAbsolutePath();
+
+      if (!Files.exists(filePath)) {
+        log.warn("Invoice PDF missing on disk: {} — regenerating", filePath);
+        invoicePdfService.generateInvoicePdf(invoice);
+        // assume generator wrote to same path; re-read
+        if (!Files.exists(filePath)) {
+          throw new ResourceNotFoundException("Invoice PDF file is missing from storage.");
+        }
+      }
+
+      return Files.readAllBytes(filePath);
+    } catch (IOException e) {
+      log.error("Failed to read invoice PDF for order {}: {}", orderId, e.getMessage(), e);
+      throw new RuntimeException("Failed to read invoice PDF: " + e.getMessage());
+    }
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public byte[] exportOrdersCsv() {
+    List<Order> orders = orderRepository.findAll(Sort.by("createdAt").descending());
+
+    StringBuilder sb = new StringBuilder();
+    sb.append("Order Number,Date,Customer Name,Customer Email,Customer Phone,");
+    sb.append("Items Count,Subtotal,Discount,Tax,Total,Status\n");
+
+    for (Order o : orders) {
+      List<OrderItem> items = orderItemRepository.findByOrderId(o.getId());
+
+      sb.append(csvEscape(o.getOrderNumber())).append(',');
+      sb.append(o.getCreatedAt() != null ? o.getCreatedAt().toString() : "").append(',');
+      sb.append(csvEscape(o.getUser().getName())).append(',');
+      sb.append(csvEscape(o.getCustomerEmail())).append(',');
+      sb.append(csvEscape(o.getCustomerPhone() != null ? o.getCustomerPhone() : "")).append(',');
+      sb.append(items.size()).append(',');
+      sb.append(o.getSubtotal()).append(',');
+      sb.append(o.getDiscount() != null ? o.getDiscount() : BigDecimal.ZERO).append(',');
+      sb.append(o.getTax() != null ? o.getTax() : BigDecimal.ZERO).append(',');
+      sb.append(o.getTotal()).append(',');
+      sb.append(o.getStatus().name()).append('\n');
+    }
+
+    return sb.toString().getBytes(StandardCharsets.UTF_8);
+  }
+
+  private String csvEscape(String s) {
+    if (s == null) return "";
+    if (s.contains(",") || s.contains("\"") || s.contains("\n")) {
+      return "\"" + s.replace("\"", "\"\"") + "\"";
+    }
+    return s;
+  }
+
   // ============ Helpers ============
 
   private OrderResponse toResponse(Order o) {
@@ -181,7 +272,9 @@ public class AdminOrderServiceImpl implements AdminOrderService {
                                         && ((k.getVariant() == null && item.getVariant() == null)
                                             || (k.getVariant() != null
                                                 && item.getVariant() != null
-                                                && k.getVariant().getId().equals(item.getVariant().getId()))))
+                                                && k.getVariant()
+                                                    .getId()
+                                                    .equals(item.getVariant().getId()))))
                             .map(LicenseKey::getLicenseKey)
                             .findFirst()
                             .orElse(null);

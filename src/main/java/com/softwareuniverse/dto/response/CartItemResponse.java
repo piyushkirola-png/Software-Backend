@@ -1,23 +1,15 @@
 package com.softwareuniverse.dto.response;
 
 import java.math.BigDecimal;
-
 import lombok.AllArgsConstructor;
-
 import lombok.Builder;
-
 import lombok.Data;
-
 import lombok.NoArgsConstructor;
 
 @Data
-
 @Builder
-
 @NoArgsConstructor
-
 @AllArgsConstructor
-
 public class CartItemResponse {
 
   private Long id;
@@ -39,5 +31,4 @@ public class CartItemResponse {
   private BigDecimal unitPrice;
 
   private BigDecimal lineTotal;
-
 }

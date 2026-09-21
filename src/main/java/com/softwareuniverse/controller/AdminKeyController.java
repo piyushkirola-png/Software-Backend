@@ -28,8 +28,7 @@ public class AdminKeyController {
   @PostMapping
   public ResponseEntity<ApiResponse<KeyResponse>> addKey(
       @Valid @RequestBody KeyUploadRequest request) {
-    return ResponseEntity.ok(
-        ApiResponse.success("Key added", adminKeyService.addKey(request)));
+    return ResponseEntity.ok(ApiResponse.success("Key added", adminKeyService.addKey(request)));
   }
 
   @PostMapping("/bulk-upload")
@@ -53,8 +52,7 @@ public class AdminKeyController {
       @RequestParam(required = false) Long variantId) {
     return ResponseEntity.ok(
         ApiResponse.success(
-            "Keys fetched",
-            adminKeyService.getAllKeys(page, size, status, productId, variantId)));
+            "Keys fetched", adminKeyService.getAllKeys(page, size, status, productId, variantId)));
   }
 
   @GetMapping("/stock-summary")
@@ -65,8 +63,7 @@ public class AdminKeyController {
 
   @PostMapping("/{id}/revoke")
   public ResponseEntity<ApiResponse<KeyResponse>> revoke(@PathVariable Long id) {
-    return ResponseEntity.ok(
-        ApiResponse.success("Key revoked", adminKeyService.revokeKey(id)));
+    return ResponseEntity.ok(ApiResponse.success("Key revoked", adminKeyService.revokeKey(id)));
   }
 
   @DeleteMapping("/{id}")
@@ -77,8 +74,7 @@ public class AdminKeyController {
 
   @GetMapping("/export-csv")
   public ResponseEntity<byte[]> exportCsv(
-      @RequestParam Long productId,
-      @RequestParam(required = false) Long variantId) {
+      @RequestParam Long productId, @RequestParam(required = false) Long variantId) {
     byte[] data = adminKeyService.exportAvailableKeysCsv(productId, variantId);
     return ResponseEntity.ok()
         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=keys.csv")

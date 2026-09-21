@@ -23,7 +23,8 @@ public class DownloadController {
   @GetMapping
   public ResponseEntity<ApiResponse<List<DownloadResponse>>> myDownloads(Principal principal) {
     return ResponseEntity.ok(
-        ApiResponse.success("Downloads fetched", downloadService.getMyDownloads(currentUserId(principal))));
+        ApiResponse.success(
+            "Downloads fetched", downloadService.getMyDownloads(currentUserId(principal))));
   }
 
   private Long currentUserId(Principal principal) {

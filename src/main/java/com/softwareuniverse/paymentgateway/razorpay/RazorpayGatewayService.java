@@ -10,9 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
- * Razorpay integration — STUB.
- * Real HTTP calls to Razorpay API will be added in a later batch.
- * For now, we simply return placeholder gatewayData.
+ * Razorpay integration — STUB. Real HTTP calls to Razorpay API will be added in a later batch. For
+ * now, we simply return placeholder gatewayData.
  */
 @Slf4j
 @Service
@@ -33,7 +32,8 @@ public class RazorpayGatewayService implements PaymentGateway {
 
     Map<String, Object> gatewayData = new HashMap<>();
     gatewayData.put("key", "rzp_test_XXXXXXXXXXXX");
-    gatewayData.put("amount", order.getTotal().multiply(java.math.BigDecimal.valueOf(100)).intValue());
+    gatewayData.put(
+        "amount", order.getTotal().multiply(java.math.BigDecimal.valueOf(100)).intValue());
     gatewayData.put("currency", "INR");
     gatewayData.put("order_id", mockGatewayOrderId);
     gatewayData.put("name", "Software Universe");

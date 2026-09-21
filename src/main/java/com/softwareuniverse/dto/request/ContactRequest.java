@@ -10,9 +10,7 @@ public class ContactRequest {
   @NotBlank(message = "Name is required")
   private String name;
 
-  @NotBlank
-  @Email
-  private String email;
+  @NotBlank @Email private String email;
 
   private String phone;
 

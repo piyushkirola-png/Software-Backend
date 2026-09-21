@@ -32,6 +32,7 @@ public class ProductResponse {
   private Integer stockQuantity;
   private Boolean isFeatured;
   private Boolean isActive;
+  private Integer displayOrder;
   private Double ratingAvg;
   private Integer ratingCount;
   private List<ProductVariantResponse> variants;

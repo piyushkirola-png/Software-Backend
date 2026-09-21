@@ -38,4 +38,7 @@ public class AddressRequest {
   private String country = "India";
 
   private Boolean isDefault = false;
+
+  @Size(max = 20)
+  private String gstNumber;
 }

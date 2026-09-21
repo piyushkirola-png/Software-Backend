@@ -1,5 +1,3 @@
 package com.softwareuniverse.service;
 
-public interface WebhookService {
-
-}
+public interface WebhookService {}

@@ -50,9 +50,7 @@ public class KeyInventoryServiceImpl implements KeyInventoryService {
     if (!order.getUser().getId().equals(userId)) {
       throw new RuntimeException("Unauthorized");
     }
-    return licenseKeyRepository.findByOrderId(orderId).stream()
-        .map(this::toResponse)
-        .toList();
+    return licenseKeyRepository.findByOrderId(orderId).stream().map(this::toResponse).toList();
   }
 
   @Override

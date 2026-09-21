@@ -22,7 +22,8 @@ public class SwaggerConfig {
                 .title("Software Universe API")
                 .description("Backend API for Software Universe — digital software reseller")
                 .version("1.0.0")
-                .contact(new Contact().name("Software Universe").email("support@softwareuniverse.in")))
+                .contact(
+                    new Contact().name("Software Universe").email("support@softwareuniverse.in")))
         .addSecurityItem(new SecurityRequirement().addList(SECURITY_SCHEME_NAME))
         .components(
             new Components()

@@ -8,12 +8,9 @@ import lombok.Data;
 @Data
 public class ResetPasswordRequest {
 
-  @NotBlank
-  @Email
-  private String email;
+  @NotBlank @Email private String email;
 
-  @NotBlank
-  private String code;
+  @NotBlank private String code;
 
   @NotBlank
   @Size(min = 6, max = 100)

@@ -37,16 +37,20 @@ public class AdminDashboardController {
 
   @GetMapping("/reports/sales")
   public ResponseEntity<ApiResponse<SalesReportResponse>> salesReport(
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate fromDate,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate toDate) {
     return ResponseEntity.ok(
         ApiResponse.success("Sales report", dashboardService.getSalesReport(fromDate, toDate)));
   }
 
   @GetMapping("/reports/gst")
   public ResponseEntity<ApiResponse<GstReportResponse>> gstReport(
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate fromDate,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate toDate) {
     return ResponseEntity.ok(
         ApiResponse.success("GST report", dashboardService.getGstReport(fromDate, toDate)));
   }

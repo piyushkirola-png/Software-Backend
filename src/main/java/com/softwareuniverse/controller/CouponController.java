@@ -23,8 +23,8 @@ public class CouponController {
   private final UserRepository userRepository;
 
   /**
-   * Validate coupon against an order subtotal (passed in query for preview).
-   * e.g. POST /api/coupons/validate?subtotal=500
+   * Validate coupon against an order subtotal (passed in query for preview). e.g. POST
+   * /api/coupons/validate?subtotal=500
    */
   @PostMapping("/validate")
   public ResponseEntity<ApiResponse<CouponResponse>> validate(

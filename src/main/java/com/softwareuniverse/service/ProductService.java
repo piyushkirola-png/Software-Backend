@@ -10,8 +10,7 @@ public interface ProductService {
 
   Page<ProductResponse> getAllActiveProducts(int page, int size, String sortBy);
 
-  Page<ProductResponse> getProductsByCategorySlug(
-      String slug, int page, int size, String sortBy);
+  Page<ProductResponse> getProductsByCategorySlug(String slug, int page, int size, String sortBy);
 
   Page<ProductResponse> searchProducts(String query, int page, int size);
 

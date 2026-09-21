@@ -40,17 +40,17 @@ public class CartController {
   public ResponseEntity<ApiResponse<CartResponse>> addToCart(
       Principal principal, @Valid @RequestBody AddToCartRequest request) {
     Long userId = currentUserId(principal);
-    return ResponseEntity.ok(ApiResponse.success("Added to cart", cartService.addToCart(userId, request)));
+    return ResponseEntity.ok(
+        ApiResponse.success("Added to cart", cartService.addToCart(userId, request)));
   }
 
   @PutMapping("/items/{cartItemId}")
   public ResponseEntity<ApiResponse<CartResponse>> updateQuantity(
-      Principal principal,
-      @PathVariable Long cartItemId,
-      @RequestParam Integer quantity) {
+      Principal principal, @PathVariable Long cartItemId, @RequestParam Integer quantity) {
     Long userId = currentUserId(principal);
     return ResponseEntity.ok(
-        ApiResponse.success("Cart updated", cartService.updateQuantity(userId, cartItemId, quantity)));
+        ApiResponse.success(
+            "Cart updated", cartService.updateQuantity(userId, cartItemId, quantity)));
   }
 
   @DeleteMapping("/items/{cartItemId}")

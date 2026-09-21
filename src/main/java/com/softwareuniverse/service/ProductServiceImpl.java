@@ -121,6 +121,7 @@ public class ProductServiceImpl implements ProductService {
         .stockQuantity(p.getStockQuantity())
         .isFeatured(p.getIsFeatured())
         .isActive(p.getIsActive())
+        .displayOrder(p.getDisplayOrder())
         .ratingAvg(p.getRatingAvg())
         .ratingCount(p.getRatingCount())
         .variants(variants)
@@ -141,8 +142,6 @@ public class ProductServiceImpl implements ProductService {
   private Integer calculateDiscount(BigDecimal mrp, BigDecimal price) {
     if (mrp == null || price == null || mrp.compareTo(BigDecimal.ZERO) == 0) return 0;
     BigDecimal diff = mrp.subtract(price);
-    return diff.multiply(BigDecimal.valueOf(100))
-        .divide(mrp, 0, RoundingMode.HALF_UP)
-        .intValue();
+    return diff.multiply(BigDecimal.valueOf(100)).divide(mrp, 0, RoundingMode.HALF_UP).intValue();
   }
 }

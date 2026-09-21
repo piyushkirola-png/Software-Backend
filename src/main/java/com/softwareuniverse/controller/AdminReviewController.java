@@ -23,7 +23,8 @@ public class AdminReviewController {
       @RequestParam(defaultValue = "20") int size,
       @RequestParam(required = false) String status) {
     return ResponseEntity.ok(
-        ApiResponse.success("Reviews fetched", adminReviewService.getAllReviews(page, size, status)));
+        ApiResponse.success(
+            "Reviews fetched", adminReviewService.getAllReviews(page, size, status)));
   }
 
   @PostMapping("/{id}/approve")

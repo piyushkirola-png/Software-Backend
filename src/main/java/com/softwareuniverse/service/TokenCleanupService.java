@@ -9,10 +9,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Housekeeping: removes expired OTPs and revoked JWT records.
- * Runs every hour.
- */
+/** Housekeeping: removes expired OTPs and revoked JWT records. Runs every hour. */
 @Slf4j
 @Service
 @RequiredArgsConstructor

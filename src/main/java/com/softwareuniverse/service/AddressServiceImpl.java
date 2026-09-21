@@ -109,7 +109,8 @@ public class AddressServiceImpl implements AddressService {
   // ============ Helpers ============
 
   private void unsetDefaults(Long userId) {
-    List<Address> existing = addressRepository.findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId);
+    List<Address> existing =
+        addressRepository.findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId);
     for (Address a : existing) {
       if (Boolean.TRUE.equals(a.getIsDefault())) {
         a.setIsDefault(false);
@@ -127,6 +128,7 @@ public class AddressServiceImpl implements AddressService {
     a.setState(r.getState());
     a.setPincode(r.getPincode());
     a.setCountry(r.getCountry() != null ? r.getCountry() : "India");
+    a.setGstNumber(r.getGstNumber());
   }
 
   private AddressResponse toResponse(Address a) {
@@ -141,6 +143,7 @@ public class AddressServiceImpl implements AddressService {
         .pincode(a.getPincode())
         .country(a.getCountry())
         .isDefault(a.getIsDefault())
+        .gstNumber(a.getGstNumber())
         .createdAt(a.getCreatedAt())
         .build();
   }

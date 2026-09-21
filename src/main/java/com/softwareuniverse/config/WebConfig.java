@@ -17,22 +17,14 @@ public class WebConfig implements WebMvcConfigurer {
 
     // Uploads (avatars, product images, etc.)
     String uploadsPath = Paths.get(uploadsDir).toAbsolutePath().toString();
-    registry
-        .addResourceHandler("/uploads/**")
-        .addResourceLocations("file:" + uploadsPath + "/");
+    registry.addResourceHandler("/uploads/**").addResourceLocations("file:" + uploadsPath + "/");
 
     // Software download files (from resources/software/**)
-    String softwarePath =
-        Paths.get("src/main/resources/software").toAbsolutePath().toString();
-    registry
-        .addResourceHandler("/software/**")
-        .addResourceLocations("file:" + softwarePath + "/");
+    String softwarePath = Paths.get("src/main/resources/software").toAbsolutePath().toString();
+    registry.addResourceHandler("/software/**").addResourceLocations("file:" + softwarePath + "/");
 
     // Assets (logo etc. from resources/assets/**)
-    String assetsPath =
-        Paths.get("src/main/resources/assets").toAbsolutePath().toString();
-    registry
-        .addResourceHandler("/assets/**")
-        .addResourceLocations("file:" + assetsPath + "/");
+    String assetsPath = Paths.get("src/main/resources/assets").toAbsolutePath().toString();
+    registry.addResourceHandler("/assets/**").addResourceLocations("file:" + assetsPath + "/");
   }
 }

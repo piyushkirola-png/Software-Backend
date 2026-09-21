@@ -25,7 +25,8 @@ public class AdminCouponController {
       @RequestParam(defaultValue = "20") int size,
       @RequestParam(required = false) String status) {
     return ResponseEntity.ok(
-        ApiResponse.success("Coupons fetched", adminCouponService.getAllCoupons(page, size, status)));
+        ApiResponse.success(
+            "Coupons fetched", adminCouponService.getAllCoupons(page, size, status)));
   }
 
   @GetMapping("/{id}")
@@ -35,7 +36,8 @@ public class AdminCouponController {
   }
 
   @PostMapping
-  public ResponseEntity<ApiResponse<CouponResponse>> create(@Valid @RequestBody CouponRequest request) {
+  public ResponseEntity<ApiResponse<CouponResponse>> create(
+      @Valid @RequestBody CouponRequest request) {
     return ResponseEntity.ok(
         ApiResponse.success("Coupon created", adminCouponService.createCoupon(request)));
   }

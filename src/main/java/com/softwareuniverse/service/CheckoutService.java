@@ -1,5 +1,3 @@
 package com.softwareuniverse.service;
 
-public interface CheckoutService {
-
-}
+public interface CheckoutService {}

@@ -7,6 +7,8 @@ import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -34,8 +36,10 @@ public class AdminOrderController {
   public ResponseEntity<ApiResponse<Page<OrderResponse>>> getByDateRange(
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "20") int size,
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate fromDate,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate toDate,
       @RequestParam(required = false) String status) {
     return ResponseEntity.ok(
         ApiResponse.success(
@@ -45,8 +49,7 @@ public class AdminOrderController {
 
   @GetMapping("/{id}")
   public ResponseEntity<ApiResponse<OrderResponse>> get(@PathVariable Long id) {
-    return ResponseEntity.ok(
-        ApiResponse.success("Order fetched", adminOrderService.getOrder(id)));
+    return ResponseEntity.ok(ApiResponse.success("Order fetched", adminOrderService.getOrder(id)));
   }
 
   @PutMapping("/{id}/status")
@@ -60,5 +63,23 @@ public class AdminOrderController {
   public ResponseEntity<ApiResponse<Void>> resendEmail(@PathVariable Long id) {
     adminOrderService.resendOrderEmail(id);
     return ResponseEntity.ok(ApiResponse.success("Email resent", null));
+  }
+
+  @GetMapping("/export")
+  public ResponseEntity<byte[]> exportCsv() {
+    byte[] csv = adminOrderService.exportOrdersCsv();
+    return ResponseEntity.ok()
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=orders.csv")
+        .contentType(MediaType.parseMediaType("text/csv"))
+        .body(csv);
+  }
+
+  @GetMapping("/{id}/invoice")
+  public ResponseEntity<byte[]> downloadInvoice(@PathVariable Long id) {
+    byte[] pdf = adminOrderService.getInvoicePdf(id);
+    return ResponseEntity.ok()
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=invoice-" + id + ".pdf")
+        .contentType(MediaType.APPLICATION_PDF)
+        .body(pdf);
   }
 }

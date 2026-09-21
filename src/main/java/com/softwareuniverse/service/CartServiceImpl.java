@@ -71,9 +71,7 @@ public class CartServiceImpl implements CartService {
               .orElse(null);
     } else {
       existing =
-          cartItemRepository
-              .findByCartIdAndProductId(cart.getId(), product.getId())
-              .orElse(null);
+          cartItemRepository.findByCartIdAndProductId(cart.getId(), product.getId()).orElse(null);
     }
 
     if (existing != null) {
@@ -144,7 +142,10 @@ public class CartServiceImpl implements CartService {
   @Override
   @Transactional(readOnly = true)
   public Long getCartCount(Long userId) {
-    return cartRepository.findByUserId(userId).map(c -> cartItemRepository.countByCartId(c.getId())).orElse(0L);
+    return cartRepository
+        .findByUserId(userId)
+        .map(c -> cartItemRepository.countByCartId(c.getId()))
+        .orElse(0L);
   }
 
   // ================= Helpers =================
@@ -178,10 +179,12 @@ public class CartServiceImpl implements CartService {
                         .productSlug(item.getProduct().getSlug())
                         .thumbnailUrl(item.getProduct().getThumbnailUrl())
                         .variantId(item.getVariant() != null ? item.getVariant().getId() : null)
-                        .variantName(item.getVariant() != null ? item.getVariant().getVariantName() : null)
+                        .variantName(
+                            item.getVariant() != null ? item.getVariant().getVariantName() : null)
                         .quantity(item.getQuantity())
                         .unitPrice(item.getUnitPrice())
-                        .lineTotal(item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                        .lineTotal(
+                            item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
                         .build())
             .toList();
 

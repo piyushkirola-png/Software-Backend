@@ -13,4 +13,11 @@ public class UpdateProfileRequest {
   private String phone;
 
   private String avatarUrl;
+
+  private String gender;
+  private String currentAddress;
+  private String city;
+  private String state;
+  private String country;
+  private String pincode;
 }

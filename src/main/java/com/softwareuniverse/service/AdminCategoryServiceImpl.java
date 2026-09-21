@@ -22,11 +22,12 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
   @Transactional(readOnly = true)
   public List<CategoryResponse> getAllCategories() {
     return categoryRepository.findAll().stream()
-        .sorted((a, b) -> {
-          int ao = a.getDisplayOrder() != null ? a.getDisplayOrder() : 0;
-          int bo = b.getDisplayOrder() != null ? b.getDisplayOrder() : 0;
-          return Integer.compare(ao, bo);
-        })
+        .sorted(
+            (a, b) -> {
+              int ao = a.getDisplayOrder() != null ? a.getDisplayOrder() : 0;
+              int bo = b.getDisplayOrder() != null ? b.getDisplayOrder() : 0;
+              return Integer.compare(ao, bo);
+            })
         .map(this::toResponse)
         .toList();
   }
@@ -44,9 +45,10 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
   @Override
   @Transactional
   public CategoryResponse createCategory(CategoryRequest request) {
-    String slug = (request.getSlug() != null && !request.getSlug().isBlank())
-        ? slugify(request.getSlug())
-        : slugify(request.getName());
+    String slug =
+        (request.getSlug() != null && !request.getSlug().isBlank())
+            ? slugify(request.getSlug())
+            : slugify(request.getName());
 
     if (categoryRepository.existsBySlug(slug)) {
       throw new RuntimeException("Category with this slug already exists: " + slug);
@@ -106,7 +108,8 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
             .findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
-    long productCount = productRepository.findByCategoryIdAndIsActiveTrueOrderByDisplayOrderAsc(id).size();
+    long productCount =
+        productRepository.findByCategoryIdAndIsActiveTrueOrderByDisplayOrderAsc(id).size();
     if (productCount > 0) {
       throw new RuntimeException(
           "Cannot delete category with " + productCount + " products. Deactivate it instead.");
@@ -121,8 +124,7 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
   }
 
   private CategoryResponse toResponse(Category c) {
-    Long productCount =
-        c.getProducts() != null ? (long) c.getProducts().size() : 0L;
+    Long productCount = c.getProducts() != null ? (long) c.getProducts().size() : 0L;
     return CategoryResponse.builder()
         .id(c.getId())
         .name(c.getName())

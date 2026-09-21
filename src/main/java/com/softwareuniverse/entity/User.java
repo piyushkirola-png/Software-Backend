@@ -1,7 +1,9 @@
 package com.softwareuniverse.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Collection;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -42,6 +44,25 @@ public class User implements UserDetails {
 
   @Column(name = "avatar_url")
   private String avatarUrl;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "gender", columnDefinition = "VARCHAR(20)")
+  private Gender gender;
+
+  @Column(name = "current_address", length = 500)
+  private String currentAddress;
+
+  @Column(name = "city", length = 100)
+  private String city;
+
+  @Column(name = "state", length = 100)
+  private String state;
+
+  @Column(name = "country", length = 100)
+  private String country;
+
+  @Column(name = "pincode", length = 10)
+  private String pincode;
 
   @Column(name = "is_active")
   private Boolean isActive = true;

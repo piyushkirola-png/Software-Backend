@@ -1,5 +1,3 @@
 package com.softwareuniverse.service;
 
-public interface ReportService {
-
-}
+public interface ReportService {}

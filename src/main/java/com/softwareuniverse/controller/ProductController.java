@@ -28,7 +28,8 @@ public class ProductController {
       @RequestParam(defaultValue = "12") int size,
       @RequestParam(required = false) String sortBy) {
     return ResponseEntity.ok(
-        ApiResponse.success("Products fetched", productService.getAllActiveProducts(page, size, sortBy)));
+        ApiResponse.success(
+            "Products fetched", productService.getAllActiveProducts(page, size, sortBy)));
   }
 
   @GetMapping("/category/{slug}")

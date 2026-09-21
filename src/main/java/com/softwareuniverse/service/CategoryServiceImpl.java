@@ -36,8 +36,7 @@ public class CategoryServiceImpl implements CategoryService {
   }
 
   private CategoryResponse toResponse(Category c) {
-    Long productCount =
-        c.getProducts() != null ? (long) c.getProducts().size() : 0L;
+    Long productCount = c.getProducts() != null ? (long) c.getProducts().size() : 0L;
     return CategoryResponse.builder()
         .id(c.getId())
         .name(c.getName())

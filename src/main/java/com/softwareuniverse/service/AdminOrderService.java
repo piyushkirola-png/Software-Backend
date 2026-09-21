@@ -17,4 +17,10 @@ public interface AdminOrderService {
 
   /** Manually trigger a resend of the order confirmation email with keys + invoice. */
   void resendOrderEmail(Long id);
+
+  /** Returns the PDF bytes of the invoice for the given order. Throws if no invoice exists. */
+  byte[] getInvoicePdf(Long orderId);
+
+  /** Returns CSV of all orders (all statuses), suitable for Excel download. */
+  byte[] exportOrdersCsv();
 }

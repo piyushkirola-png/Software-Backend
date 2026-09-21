@@ -29,8 +29,7 @@ public class AdminUserController {
 
   @GetMapping("/{id}")
   public ResponseEntity<ApiResponse<UserResponse>> get(@PathVariable Long id) {
-    return ResponseEntity.ok(
-        ApiResponse.success("User fetched", adminUserService.getUser(id)));
+    return ResponseEntity.ok(ApiResponse.success("User fetched", adminUserService.getUser(id)));
   }
 
   @PutMapping("/{id}")

@@ -34,7 +34,8 @@ public class AdminUserServiceImpl implements AdminUserService {
                           || u.getEmail().toLowerCase().contains(q)
                           || (u.getPhone() != null && u.getPhone().contains(search)))
               .toList();
-      return new PageImpl<>(filtered.stream().map(this::toResponse).toList(), pageable, filtered.size());
+      return new PageImpl<>(
+          filtered.stream().map(this::toResponse).toList(), pageable, filtered.size());
     }
 
     return users.map(this::toResponse);

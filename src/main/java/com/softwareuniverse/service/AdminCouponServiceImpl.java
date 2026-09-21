@@ -31,7 +31,8 @@ public class AdminCouponServiceImpl implements AdminCouponService {
           coupons.getContent().stream()
               .filter(c -> Boolean.valueOf(active).equals(c.getIsActive()))
               .toList();
-      return new PageImpl<>(filtered.stream().map(this::toResponse).toList(), pageable, filtered.size());
+      return new PageImpl<>(
+          filtered.stream().map(this::toResponse).toList(), pageable, filtered.size());
     }
     return coupons.map(this::toResponse);
   }
@@ -62,7 +63,8 @@ public class AdminCouponServiceImpl implements AdminCouponService {
     c.setDescription(request.getDescription());
     c.setType(type);
     c.setValue(request.getValue());
-    c.setMinOrderAmount(request.getMinOrderAmount() != null ? request.getMinOrderAmount() : BigDecimal.ZERO);
+    c.setMinOrderAmount(
+        request.getMinOrderAmount() != null ? request.getMinOrderAmount() : BigDecimal.ZERO);
     c.setMaxDiscount(request.getMaxDiscount());
     c.setUsageLimit(request.getUsageLimit());
     c.setUsedCount(0);

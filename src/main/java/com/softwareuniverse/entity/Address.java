@@ -50,6 +50,9 @@ public class Address {
   @Column(name = "is_default", nullable = false)
   private Boolean isDefault = false;
 
+  @Column(name = "gst_number", length = 20)
+  private String gstNumber;
+
   @Column(name = "created_at")
   private LocalDateTime createdAt;
 

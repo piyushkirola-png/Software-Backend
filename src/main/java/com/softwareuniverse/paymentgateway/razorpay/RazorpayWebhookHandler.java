@@ -5,10 +5,7 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-/**
- * Razorpay webhook handler — STUB.
- * Real signature verification + event processing added later.
- */
+/** Razorpay webhook handler — STUB. Real signature verification + event processing added later. */
 @Slf4j
 @Service
 public class RazorpayWebhookHandler implements WebhookHandler {

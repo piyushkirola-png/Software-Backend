@@ -16,7 +16,8 @@ public class NewsletterController {
   private final NewsletterService newsletterService;
 
   @PostMapping("/subscribe")
-  public ResponseEntity<ApiResponse<Void>> subscribe(@Valid @RequestBody NewsletterRequest request) {
+  public ResponseEntity<ApiResponse<Void>> subscribe(
+      @Valid @RequestBody NewsletterRequest request) {
     newsletterService.subscribe(request.getEmail());
     return ResponseEntity.ok(ApiResponse.success("Subscribed successfully", null));
   }

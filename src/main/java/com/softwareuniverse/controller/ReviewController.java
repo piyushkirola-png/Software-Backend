@@ -30,7 +30,8 @@ public class ReviewController {
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int size) {
     return ResponseEntity.ok(
-        ApiResponse.success("Reviews fetched", reviewService.getApprovedReviews(productId, page, size)));
+        ApiResponse.success(
+            "Reviews fetched", reviewService.getApprovedReviews(productId, page, size)));
   }
 
   /** Public — for home page carousel. */
@@ -44,7 +45,8 @@ public class ReviewController {
   public ResponseEntity<ApiResponse<ReviewResponse>> create(
       Principal principal, @Valid @RequestBody ReviewRequest request) {
     return ResponseEntity.ok(
-        ApiResponse.success("Review submitted", reviewService.createReview(currentUserId(principal), request)));
+        ApiResponse.success(
+            "Review submitted", reviewService.createReview(currentUserId(principal), request)));
   }
 
   @GetMapping("/my")

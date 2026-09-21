@@ -63,8 +63,7 @@ public class OrderController {
       Principal principal, @PathVariable String orderNumber) {
     Long userId = currentUserId(principal);
     return ResponseEntity.ok(
-        ApiResponse.success(
-            "Order fetched", orderService.getOrderByNumber(userId, orderNumber)));
+        ApiResponse.success("Order fetched", orderService.getOrderByNumber(userId, orderNumber)));
   }
 
   private Long currentUserId(Principal principal) {

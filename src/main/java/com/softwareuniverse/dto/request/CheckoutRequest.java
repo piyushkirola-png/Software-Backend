@@ -1,17 +1,21 @@
 package com.softwareuniverse.dto.request;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
 public class CheckoutRequest {
-
   @NotNull(message = "Address ID is required")
   private Long addressId;
 
-  // Optional coupon code
   private String couponCode;
 
-  // Optional — for gateway selection at checkout
-  private String gateway; // RAZORPAY, CASHFREE, etc.
+  private String gateway;
+
+  @Size(max = 20)
+  private String gstNumber;
+
+  @Size(max = 500)
+  private String notes;
 }

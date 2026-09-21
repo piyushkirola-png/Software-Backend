@@ -62,8 +62,10 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
             .filter(o -> o.getCreatedAt() != null && o.getCreatedAt().isAfter(todayStart))
             .count();
 
-    long pendingOrders = allOrders.stream().filter(o -> o.getStatus() == OrderStatus.PENDING).count();
-    long successOrders = allOrders.stream().filter(o -> o.getStatus() == OrderStatus.SUCCESS).count();
+    long pendingOrders =
+        allOrders.stream().filter(o -> o.getStatus() == OrderStatus.PENDING).count();
+    long successOrders =
+        allOrders.stream().filter(o -> o.getStatus() == OrderStatus.SUCCESS).count();
     long failedOrders = allOrders.stream().filter(o -> o.getStatus() == OrderStatus.FAILED).count();
 
     long totalUsers = userRepository.count();
@@ -76,7 +78,10 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
     long totalCategories = categoryRepository.count();
     long activeProducts = productRepository.countByIsActiveTrue();
 
-    long pendingReviews = reviewRepository.findByIsApprovedFalseOrderByCreatedAtDesc(PageRequest.of(0, 1)).getTotalElements();
+    long pendingReviews =
+        reviewRepository
+            .findByIsApprovedFalseOrderByCreatedAtDesc(PageRequest.of(0, 1))
+            .getTotalElements();
     long totalReviews = reviewRepository.count();
 
     long availableKeys = licenseKeyRepository.countByStatus(KeyStatus.AVAILABLE);
@@ -110,9 +115,7 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
   @Override
   @Transactional(readOnly = true)
   public List<RecentOrderResponse> getRecentOrders(int limit) {
-    var page =
-        orderRepository.findAll(
-            PageRequest.of(0, limit, Sort.by("createdAt").descending()));
+    var page = orderRepository.findAll(PageRequest.of(0, limit, Sort.by("createdAt").descending()));
 
     return page.getContent().stream()
         .map(
@@ -213,7 +216,9 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
     List<GstReportResponse.InvoiceLine> lines = new ArrayList<>();
 
     for (Invoice inv : invoices) {
-      BigDecimal taxable = inv.getSubtotal().subtract(inv.getDiscount() != null ? inv.getDiscount() : BigDecimal.ZERO);
+      BigDecimal taxable =
+          inv.getSubtotal()
+              .subtract(inv.getDiscount() != null ? inv.getDiscount() : BigDecimal.ZERO);
       totalTaxableValue = totalTaxableValue.add(taxable);
       totalCgst = totalCgst.add(nvl(inv.getCgst()));
       totalSgst = totalSgst.add(nvl(inv.getSgst()));
