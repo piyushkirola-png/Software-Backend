@@ -20,7 +20,7 @@ public class WebhookInboundLog {
   private Long id;
 
   @Column(name = "gateway", nullable = false, length = 50)
-  private String gateway; // RAZORPAY, CASHFREE, etc.
+  private String gateway;
 
   @Column(name = "event_type", length = 100)
   private String eventType;

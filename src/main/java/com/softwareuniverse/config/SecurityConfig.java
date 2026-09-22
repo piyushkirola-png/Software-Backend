@@ -34,7 +34,7 @@ public class SecurityConfig {
     "/api/reviews/**",
     "/api/contact/**",
     "/api/newsletter/**",
-    "/api/payments/webhook/**",
+    "/api/webhooks/**",
     "/api/payments/razorpay/**",
     "/api/payments/cashfree/**",
     "/api/payments/payu/**",

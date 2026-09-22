@@ -9,8 +9,8 @@ CREATE TABLE
         id BIGINT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(150) NOT NULL,
         email VARCHAR(150) NOT NULL UNIQUE,
-        password VARCHAR(255) NOT NULL,orders
-        role VARCHAR(20) NOT NULL DEFAULT 'USER',
+        password VARCHAR(255) NOT NULL,
+        orders role VARCHAR(20) NOT NULL DEFAULT 'USER',
         phone VARCHAR(20),
         avatar_url VARCHAR(500),
         is_active BOOLEAN NOT NULL DEFAULT TRUE,
@@ -334,6 +334,7 @@ CREATE TABLE
         gateway_signature VARCHAR(500),
         amount DECIMAL(10, 2) NOT NULL,
         currency VARCHAR(10) DEFAULT 'INR',
+        payment_link VARCHAR(500) NULL,
         status VARCHAR(20) NOT NULL DEFAULT 'INITIATED',
         failure_reason VARCHAR(500),
         raw_response TEXT,

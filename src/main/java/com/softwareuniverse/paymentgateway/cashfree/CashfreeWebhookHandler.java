@@ -1,21 +1,151 @@
 package com.softwareuniverse.paymentgateway.cashfree;
 
 import com.softwareuniverse.paymentgateway.WebhookHandler;
+import java.math.BigDecimal;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 @Slf4j
-@Service
+@Component
 public class CashfreeWebhookHandler implements WebhookHandler {
 
   @Override
-  public String getGatewayKey() {
+  public String getGatewayName() {
     return "CASHFREE";
   }
 
   @Override
-  public void handle(String rawBody, Map<String, String> headers) {
-    log.info("Cashfree webhook received. Body length: {}", rawBody != null ? rawBody.length() : 0);
+  @SuppressWarnings("unchecked")
+  public WebhookResult process(
+    String rawBody,
+    Map<String, Object> payload,
+    Map<String, String> headers
+  ) {
+    WebhookResult result = new WebhookResult();
+
+    try {
+      String eventType = firstNonNull(
+        payload.get("type"),
+        payload.get("event")
+      );
+      result.setEventType(eventType);
+      log.info("[Cashfree Webhook] Event: {}", eventType);
+
+      if (
+        eventType != null &&
+        (eventType.startsWith("CHARGEBACK") ||
+          eventType.startsWith("REFUND") ||
+          eventType.equals("PAYMENT_LINK_EVENT"))
+      ) {
+        result.setStatus("IGNORED");
+        return result;
+      }
+
+      // Extract data.order and data.payment
+      Map<String, Object> data = (Map<String, Object>) payload.get("data");
+      if (data == null) {
+        data = payload; // some webhooks send flat
+      }
+
+      Map<String, Object> order = (Map<String, Object>) data.get("order");
+      Map<String, Object> payment = (Map<String, Object>) data.get("payment");
+
+      String paymentStatus = null;
+      if (payment != null && payment.get("payment_status") != null) {
+        paymentStatus = payment.get("payment_status").toString();
+      }
+
+      // Determine success / fail
+      boolean isSuccess =
+        "PAYMENT_SUCCESS_WEBHOOK".equals(eventType) ||
+        "ORDER_PAID".equals(eventType) ||
+        "SUCCESS".equalsIgnoreCase(paymentStatus);
+
+      boolean isFailed =
+        "PAYMENT_FAILED_WEBHOOK".equals(eventType) ||
+        "FAILED".equalsIgnoreCase(paymentStatus);
+
+      if (!isSuccess && !isFailed) {
+        result.setStatus("IGNORED");
+        return result;
+      }
+
+      // Order ID
+      String orderId = null;
+
+      if (order != null && order.get("order_tags") instanceof Map) {
+        Map<String, Object> tags = (Map<String, Object>) order.get(
+          "order_tags"
+        );
+        Object linkId = tags.get("link_id");
+        if (linkId != null && !linkId.toString().isBlank()) {
+          orderId = linkId.toString();
+          log.info("[Cashfree Webhook] Using link_id as orderId: {}", orderId);
+        }
+      }
+
+      if (orderId == null && order != null && order.get("order_id") != null) {
+        orderId = order.get("order_id").toString();
+      } else if (
+        orderId == null && payment != null && payment.get("order_id") != null
+      ) {
+        orderId = payment.get("order_id").toString();
+      } else if (orderId == null && payload.get("order_id") != null) {
+        orderId = payload.get("order_id").toString();
+      }
+      result.setOrderId(orderId);
+
+      // Payment ID
+      String paymentId = null;
+      if (payment != null) {
+        paymentId = firstNonNull(
+          payment.get("cf_payment_id"),
+          payment.get("payment_id")
+        );
+      }
+      result.setPaymentId(paymentId);
+
+      // Amount
+      BigDecimal amount = null;
+      if (payment != null && payment.get("payment_amount") != null) {
+        amount = new BigDecimal(payment.get("payment_amount").toString());
+      } else if (order != null && order.get("order_amount") != null) {
+        amount = new BigDecimal(order.get("order_amount").toString());
+      }
+      result.setAmount(amount);
+
+      // UTR
+      String utr = null;
+      if (payment != null) {
+        utr = firstNonNull(payment.get("bank_reference"), payment.get("utr"));
+      }
+      result.setUtr(utr);
+
+      result.setStatus(isSuccess ? "SUCCESS" : "FAILED");
+
+      log.info(
+        "[Cashfree Webhook] Parsed: order={}, payment={}, amount={}, utr={}, status={}",
+        orderId,
+        paymentId,
+        amount,
+        utr,
+        result.getStatus()
+      );
+
+      return result;
+    } catch (Exception e) {
+      log.error("[Cashfree Webhook] Parse error: {}", e.getMessage(), e);
+      result.setStatus("FAILED");
+      result.setFailureReason(e.getMessage());
+      return result;
+    }
+  }
+
+  private String firstNonNull(Object... vals) {
+    for (Object v : vals) {
+      if (v != null && !v.toString().isBlank()) return v.toString();
+    }
+    return null;
   }
 }

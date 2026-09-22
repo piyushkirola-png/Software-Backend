@@ -29,7 +29,7 @@ public class Payment {
   private User user;
 
   @Column(name = "gateway", nullable = false, length = 50)
-  private String gateway; // RAZORPAY, CASHFREE, PAYU, SABPAISA
+  private String gateway;
 
   @Column(name = "gateway_order_id", length = 255)
   private String gatewayOrderId;
@@ -40,6 +40,9 @@ public class Payment {
   @Column(name = "gateway_signature", length = 500)
   private String gatewaySignature;
 
+  @Column(name = "payment_link", length = 500)
+  private String paymentLink;
+
   @Column(name = "amount", nullable = false, precision = 10, scale = 2)
   private BigDecimal amount;
 
@@ -47,7 +50,12 @@ public class Payment {
   private String currency = "INR";
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
+  @Column(
+    name = "status",
+    nullable = false,
+    length = 20,
+    columnDefinition = "VARCHAR(20)"
+  )
   private PaymentStatus status = PaymentStatus.INITIATED;
 
   @Column(name = "failure_reason", length = 500)

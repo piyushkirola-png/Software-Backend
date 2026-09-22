@@ -18,7 +18,5 @@ public class PaymentInitiateResponse {
   private BigDecimal amount;
   private String currency;
   private String status;
-
-  /** Gateway-specific data (e.g. Razorpay checkout params, redirect URL, etc.) */
   private Map<String, Object> gatewayData;
 }
