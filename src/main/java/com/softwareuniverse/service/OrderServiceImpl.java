@@ -33,23 +33,25 @@ public class OrderServiceImpl implements OrderService {
   private final InvoiceRepository invoiceRepository;
 
   private static final BigDecimal GST_RATE = new BigDecimal("0.18"); // 18% GST
-  private static final DateTimeFormatter ORDER_DATE_FMT =
-    DateTimeFormatter.ofPattern("yyyyMMdd");
+  private static final DateTimeFormatter ORDER_DATE_FMT = DateTimeFormatter.ofPattern("yyyyMMdd");
 
   @Override
   @Transactional
   public OrderResponse checkout(Long userId, CheckoutRequest request) {
-    User user = userRepository
-      .findById(userId)
-      .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    User user =
+        userRepository
+            .findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-    Address address = addressRepository
-      .findByIdAndUserId(request.getAddressId(), userId)
-      .orElseThrow(() -> new ResourceNotFoundException("Address not found"));
+    Address address =
+        addressRepository
+            .findByIdAndUserId(request.getAddressId(), userId)
+            .orElseThrow(() -> new ResourceNotFoundException("Address not found"));
 
-    Cart cart = cartRepository
-      .findByUserId(userId)
-      .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
+    Cart cart =
+        cartRepository
+            .findByUserId(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
 
     List<CartItem> cartItems = cartItemRepository.findByCartId(cart.getId());
     if (cartItems.isEmpty()) {
@@ -62,27 +64,21 @@ public class OrderServiceImpl implements OrderService {
     }
 
     // 2. Compute subtotal
-    BigDecimal subtotal = cartItems
-      .stream()
-      .map(i -> i.getUnitPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
-      .reduce(BigDecimal.ZERO, BigDecimal::add);
+    BigDecimal subtotal =
+        cartItems.stream()
+            .map(i -> i.getUnitPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
 
     // 3. Apply coupon (if any)
     BigDecimal discount = BigDecimal.ZERO;
     if (request.getCouponCode() != null && !request.getCouponCode().isBlank()) {
-      discount = couponService.calculateDiscount(
-        request.getCouponCode(),
-        subtotal,
-        userId
-      );
+      discount = couponService.calculateDiscount(request.getCouponCode(), subtotal, userId);
     }
 
     BigDecimal afterDiscount = subtotal.subtract(discount);
 
     // 4. Compute tax (GST inclusive — display only)
-    BigDecimal tax = afterDiscount
-      .multiply(GST_RATE)
-      .setScale(2, RoundingMode.HALF_UP);
+    BigDecimal tax = afterDiscount.multiply(GST_RATE).setScale(2, RoundingMode.HALF_UP);
 
     BigDecimal total = afterDiscount.setScale(2, RoundingMode.HALF_UP);
 
@@ -111,13 +107,10 @@ public class OrderServiceImpl implements OrderService {
       orderItem.setVariant(item.getVariant());
       orderItem.setProductTitle(item.getProduct().getTitle());
       orderItem.setVariantName(
-        item.getVariant() != null ? item.getVariant().getVariantName() : null
-      );
+          item.getVariant() != null ? item.getVariant().getVariantName() : null);
       orderItem.setQuantity(item.getQuantity());
       orderItem.setUnitPrice(item.getUnitPrice());
-      orderItem.setLineTotal(
-        item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity()))
-      );
+      orderItem.setLineTotal(item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
       orderItemRepository.save(orderItem);
     }
 
@@ -130,36 +123,25 @@ public class OrderServiceImpl implements OrderService {
   @Override
   @Transactional(readOnly = true)
   public List<OrderResponse> getMyOrders(Long userId) {
-    return orderRepository
-      .findByUserIdOrderByCreatedAtDesc(userId)
-      .stream()
-      .map(this::toResponse)
-      .toList();
+    return orderRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
+        .map(this::toResponse)
+        .toList();
   }
 
   @Override
   @Transactional(readOnly = true)
-  public Page<OrderResponse> getMyOrdersPaginated(
-    Long userId,
-    int page,
-    int size
-  ) {
-    Pageable pageable = PageRequest.of(
-      page,
-      size,
-      Sort.by("createdAt").descending()
-    );
-    return orderRepository
-      .findByUserIdOrderByCreatedAtDesc(userId, pageable)
-      .map(this::toResponse);
+  public Page<OrderResponse> getMyOrdersPaginated(Long userId, int page, int size) {
+    Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+    return orderRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable).map(this::toResponse);
   }
 
   @Override
   @Transactional(readOnly = true)
   public OrderResponse getOrderById(Long userId, Long orderId) {
-    Order order = orderRepository
-      .findById(orderId)
-      .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+    Order order =
+        orderRepository
+            .findById(orderId)
+            .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
     if (!order.getUser().getId().equals(userId)) {
       throw new RuntimeException("Unauthorized");
     }
@@ -169,9 +151,10 @@ public class OrderServiceImpl implements OrderService {
   @Override
   @Transactional(readOnly = true)
   public OrderResponse getOrderByNumber(Long userId, String orderNumber) {
-    Order order = orderRepository
-      .findByOrderNumber(orderNumber)
-      .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+    Order order =
+        orderRepository
+            .findByOrderNumber(orderNumber)
+            .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
     if (!order.getUser().getId().equals(userId)) {
       throw new RuntimeException("Unauthorized");
     }
@@ -183,32 +166,24 @@ public class OrderServiceImpl implements OrderService {
   private void reserveKey(CartItem item) {
     LicenseKey key;
     if (item.getVariant() != null) {
-      key = licenseKeyRepository
-        .findFirstByProductIdAndVariantIdAndStatus(
-          item.getProduct().getId(),
-          item.getVariant().getId(),
-          KeyStatus.AVAILABLE
-        )
-        .orElseThrow(() ->
-          new RuntimeException(
-            "Out of stock for: " +
-              item.getProduct().getTitle() +
-              " (" +
-              item.getVariant().getVariantName() +
-              ")"
-          )
-        );
+      key =
+          licenseKeyRepository
+              .findFirstByProductIdAndVariantIdAndStatus(
+                  item.getProduct().getId(), item.getVariant().getId(), KeyStatus.AVAILABLE)
+              .orElseThrow(
+                  () ->
+                      new RuntimeException(
+                          "Out of stock for: "
+                              + item.getProduct().getTitle()
+                              + " ("
+                              + item.getVariant().getVariantName()
+                              + ")"));
     } else {
-      key = licenseKeyRepository
-        .findFirstByProductIdAndStatus(
-          item.getProduct().getId(),
-          KeyStatus.AVAILABLE
-        )
-        .orElseThrow(() ->
-          new RuntimeException(
-            "Out of stock for: " + item.getProduct().getTitle()
-          )
-        );
+      key =
+          licenseKeyRepository
+              .findFirstByProductIdAndStatus(item.getProduct().getId(), KeyStatus.AVAILABLE)
+              .orElseThrow(
+                  () -> new RuntimeException("Out of stock for: " + item.getProduct().getTitle()));
     }
     key.setStatus(KeyStatus.RESERVED);
     key.setReservedAt(LocalDateTime.now());
@@ -227,42 +202,42 @@ public class OrderServiceImpl implements OrderService {
     // Fetch assigned license keys (only on SUCCESS orders)
     List<LicenseKey> keys = licenseKeyRepository.findByOrderId(order.getId());
 
-    List<OrderItemResponse> itemResponses = items
-      .stream()
-      .map(item -> {
-        String licenseKey = null;
-        if (OrderStatus.SUCCESS.equals(order.getStatus())) {
-          licenseKey = keys
-            .stream()
-            .filter(
-              k ->
-                k.getProduct().getId().equals(item.getProduct().getId()) &&
-                ((k.getVariant() == null && item.getVariant() == null) ||
-                  (k.getVariant() != null &&
-                    item.getVariant() != null &&
-                    k.getVariant().getId().equals(item.getVariant().getId())))
-            )
-            .map(LicenseKey::getLicenseKey)
-            .findFirst()
-            .orElse(null);
-        }
-        return OrderItemResponse.builder()
-          .id(item.getId())
-          .productId(item.getProduct().getId())
-          .productTitle(item.getProductTitle())
-          .productSlug(item.getProduct().getSlug())
-          .thumbnailUrl(item.getProduct().getThumbnailUrl())
-          .variantId(
-            item.getVariant() != null ? item.getVariant().getId() : null
-          )
-          .variantName(item.getVariantName())
-          .quantity(item.getQuantity())
-          .unitPrice(item.getUnitPrice())
-          .lineTotal(item.getLineTotal())
-          .licenseKey(licenseKey)
-          .build();
-      })
-      .toList();
+    List<OrderItemResponse> itemResponses =
+        items.stream()
+            .map(
+                item -> {
+                  String licenseKey = null;
+                  if (OrderStatus.SUCCESS.equals(order.getStatus())) {
+                    licenseKey =
+                        keys.stream()
+                            .filter(
+                                k ->
+                                    k.getProduct().getId().equals(item.getProduct().getId())
+                                        && ((k.getVariant() == null && item.getVariant() == null)
+                                            || (k.getVariant() != null
+                                                && item.getVariant() != null
+                                                && k.getVariant()
+                                                    .getId()
+                                                    .equals(item.getVariant().getId()))))
+                            .map(LicenseKey::getLicenseKey)
+                            .findFirst()
+                            .orElse(null);
+                  }
+                  return OrderItemResponse.builder()
+                      .id(item.getId())
+                      .productId(item.getProduct().getId())
+                      .productTitle(item.getProductTitle())
+                      .productSlug(item.getProduct().getSlug())
+                      .thumbnailUrl(item.getProduct().getThumbnailUrl())
+                      .variantId(item.getVariant() != null ? item.getVariant().getId() : null)
+                      .variantName(item.getVariantName())
+                      .quantity(item.getQuantity())
+                      .unitPrice(item.getUnitPrice())
+                      .lineTotal(item.getLineTotal())
+                      .licenseKey(licenseKey)
+                      .build();
+                })
+            .toList();
 
     // Invoice info if exists
     String invoiceNumber = null;
@@ -274,22 +249,22 @@ public class OrderServiceImpl implements OrderService {
     }
 
     return OrderResponse.builder()
-      .id(order.getId())
-      .orderNumber(order.getOrderNumber())
-      .userId(order.getUser().getId())
-      .customerName(order.getUser().getName())
-      .customerEmail(order.getCustomerEmail())
-      .customerPhone(order.getCustomerPhone())
-      .subtotal(order.getSubtotal())
-      .discount(order.getDiscount())
-      .couponCode(order.getCouponCode())
-      .tax(order.getTax())
-      .total(order.getTotal())
-      .status(order.getStatus().name())
-      .invoiceNumber(invoiceNumber)
-      .invoicePdfUrl(invoiceUrl)
-      .createdAt(order.getCreatedAt())
-      .items(itemResponses)
-      .build();
+        .id(order.getId())
+        .orderNumber(order.getOrderNumber())
+        .userId(order.getUser().getId())
+        .customerName(order.getUser().getName())
+        .customerEmail(order.getCustomerEmail())
+        .customerPhone(order.getCustomerPhone())
+        .subtotal(order.getSubtotal())
+        .discount(order.getDiscount())
+        .couponCode(order.getCouponCode())
+        .tax(order.getTax())
+        .total(order.getTotal())
+        .status(order.getStatus().name())
+        .invoiceNumber(invoiceNumber)
+        .invoicePdfUrl(invoiceUrl)
+        .createdAt(order.getCreatedAt())
+        .items(itemResponses)
+        .build();
   }
 }

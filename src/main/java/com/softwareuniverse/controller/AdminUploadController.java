@@ -24,15 +24,13 @@ public class AdminUploadController {
   public ResponseEntity<ApiResponse<Map<String, String>>> uploadProduct(
       @RequestParam("file") MultipartFile file) {
     String url = storage.storeProduct(file);
-    return ResponseEntity.ok(
-        ApiResponse.success("Uploaded", Map.of("url", url)));
+    return ResponseEntity.ok(ApiResponse.success("Uploaded", Map.of("url", url)));
   }
 
   @PostMapping("/category")
   public ResponseEntity<ApiResponse<Map<String, String>>> uploadCategory(
       @RequestParam("file") MultipartFile file) {
     String url = storage.storeCategory(file);
-    return ResponseEntity.ok(
-        ApiResponse.success("Uploaded", Map.of("url", url)));
+    return ResponseEntity.ok(ApiResponse.success("Uploaded", Map.of("url", url)));
   }
 }

@@ -25,9 +25,7 @@ public class WebhookController {
 
   @PostMapping("/{gateway}")
   public ResponseEntity<ApiResponse<Void>> handleWebhook(
-    @PathVariable String gateway,
-    HttpServletRequest request
-  ) {
+      @PathVariable String gateway, HttpServletRequest request) {
     String rawBody = readBody(request);
     Map<String, String> headers = new HashMap<>();
     Enumeration<String> names = request.getHeaderNames();
@@ -36,11 +34,11 @@ public class WebhookController {
       headers.put(name.toLowerCase(), request.getHeader(name));
     }
 
-    WebhookHandler handler = handlers
-      .stream()
-      .filter(h -> h.getGatewayName().equalsIgnoreCase(gateway))
-      .findFirst()
-      .orElse(null);
+    WebhookHandler handler =
+        handlers.stream()
+            .filter(h -> h.getGatewayName().equalsIgnoreCase(gateway))
+            .findFirst()
+            .orElse(null);
 
     if (handler == null) {
       log.warn("No webhook handler for gateway: {}", gateway);
@@ -49,43 +47,23 @@ public class WebhookController {
 
     try {
       Map<String, Object> payload =
-        new com.fasterxml.jackson.databind.ObjectMapper().readValue(
-          rawBody,
-          Map.class
-        );
-      WebhookHandler.WebhookResult result = handler.process(
-        rawBody,
-        payload,
-        headers
-      );
+          new com.fasterxml.jackson.databind.ObjectMapper().readValue(rawBody, Map.class);
+      WebhookHandler.WebhookResult result = handler.process(rawBody, payload, headers);
 
       log.info(
-        "[Webhook:{}] result status={}, orderId={}, paymentId={}",
-        gateway,
-        result.getStatus(),
-        result.getOrderId(),
-        result.getPaymentId()
-      );
+          "[Webhook:{}] result status={}, orderId={}, paymentId={}",
+          gateway,
+          result.getStatus(),
+          result.getOrderId(),
+          result.getPaymentId());
 
       if ("SUCCESS".equals(result.getStatus())) {
-        paymentService.markSuccess(
-          result.getPaymentId(),
-          result.getOrderId(),
-          rawBody
-        );
+        paymentService.markSuccess(result.getPaymentId(), result.getOrderId(), rawBody);
       } else if ("FAILED".equals(result.getStatus())) {
-        paymentService.markFailed(
-          result.getOrderId(),
-          result.getFailureReason()
-        );
+        paymentService.markFailed(result.getOrderId(), result.getFailureReason());
       }
     } catch (Exception e) {
-      log.error(
-        "Webhook handling failed for {}: {}",
-        gateway,
-        e.getMessage(),
-        e
-      );
+      log.error("Webhook handling failed for {}: {}", gateway, e.getMessage(), e);
     }
 
     return ResponseEntity.ok(ApiResponse.success("Webhook received", null));

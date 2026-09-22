@@ -50,13 +50,8 @@ public class Payment {
   private String currency = "INR";
 
   @Enumerated(EnumType.STRING)
-  @Column(
-    name = "status",
-    nullable = false,
-    length = 20,
-    columnDefinition = "VARCHAR(20)"
-  )
-  private PaymentStatus status = PaymentStatus.INITIATED;
+  @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
+  private PaymentStatus status = PaymentStatus.PENDING;
 
   @Column(name = "failure_reason", length = 500)
   private String failureReason;
@@ -74,7 +69,7 @@ public class Payment {
   protected void onCreate() {
     createdAt = LocalDateTime.now();
     updatedAt = LocalDateTime.now();
-    if (status == null) status = PaymentStatus.INITIATED;
+    if (status == null) status = PaymentStatus.PENDING;
     if (currency == null) currency = "INR";
   }
 

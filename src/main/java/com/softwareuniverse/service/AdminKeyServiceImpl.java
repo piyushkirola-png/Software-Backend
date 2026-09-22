@@ -26,7 +26,6 @@ public class AdminKeyServiceImpl implements AdminKeyService {
   private final LicenseKeyRepository licenseKeyRepository;
   private final ProductRepository productRepository;
   private final ProductVariantRepository variantRepository;
-  private final OrderRepository orderRepository;
 
   @Override
   @Transactional
@@ -67,7 +66,6 @@ public class AdminKeyServiceImpl implements AdminKeyService {
   @Transactional
   public KeyBatchUploadResponse bulkUploadCsv(
       MultipartFile file, Long productId, Long variantId, String batchName) {
-
     Product product =
         productRepository
             .findById(productId)
@@ -92,7 +90,6 @@ public class AdminKeyServiceImpl implements AdminKeyService {
 
     try (BufferedReader reader =
         new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
-
       String line;
       int lineNumber = 0;
       List<LicenseKey> toSave = new ArrayList<>();
@@ -153,7 +150,6 @@ public class AdminKeyServiceImpl implements AdminKeyService {
       }
 
       syncStock(product, variant);
-
     } catch (Exception e) {
       log.error("Bulk upload failed: {}", e.getMessage(), e);
       throw new RuntimeException("CSV upload failed: " + e.getMessage());
@@ -170,19 +166,33 @@ public class AdminKeyServiceImpl implements AdminKeyService {
   @Override
   @Transactional(readOnly = true)
   public Page<KeyResponse> getAllKeys(
-      int page, int size, String status, Long productId, Long variantId) {
+      int page, int size, String status, Long productId, Long variantId, String search) {
+    Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
 
-    Pageable pageable = PageRequest.of(page, size, Sort.by("uploadedAt").descending());
+    KeyStatus parsedStatus = null;
+    if (status != null && !status.isBlank()) {
+      try {
+        parsedStatus = KeyStatus.valueOf(status.toUpperCase());
+      } catch (IllegalArgumentException ignored) {
+        // invalid status → treat as no filter
+      }
+    }
+    final KeyStatus statusEnum = parsedStatus;
 
+    String searchTerm = (search != null && !search.isBlank()) ? search.trim().toLowerCase() : null;
+
+    if (searchTerm != null) {
+      Page<LicenseKey> resultPage =
+          licenseKeyRepository.searchKeys(statusEnum, productId, variantId, searchTerm, pageable);
+      return resultPage.map(this::toResponse);
+    }
+
+    // Fallback: existing in-memory behavior when no search term
     List<LicenseKey> all = licenseKeyRepository.findAll();
 
     List<LicenseKey> filtered =
         all.stream()
-            .filter(
-                k ->
-                    status == null
-                        || status.isBlank()
-                        || k.getStatus().name().equalsIgnoreCase(status))
+            .filter(k -> statusEnum == null || k.getStatus() == statusEnum)
             .filter(k -> productId == null || k.getProduct().getId().equals(productId))
             .filter(
                 k ->

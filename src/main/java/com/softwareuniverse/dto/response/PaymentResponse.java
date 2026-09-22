@@ -18,10 +18,12 @@ public class PaymentResponse {
   private String gateway;
   private String gatewayOrderId;
   private String gatewayPaymentId;
+  private String paymentLink;
   private BigDecimal amount;
   private String currency;
   private String status;
   private String failureReason;
+  private String rawResponse;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
 }

@@ -49,10 +49,12 @@ public class AdminKeyController {
       @RequestParam(defaultValue = "50") int size,
       @RequestParam(required = false) String status,
       @RequestParam(required = false) Long productId,
-      @RequestParam(required = false) Long variantId) {
+      @RequestParam(required = false) Long variantId,
+      @RequestParam(required = false) String search) {
     return ResponseEntity.ok(
         ApiResponse.success(
-            "Keys fetched", adminKeyService.getAllKeys(page, size, status, productId, variantId)));
+            "Keys fetched",
+            adminKeyService.getAllKeys(page, size, status, productId, variantId, search)));
   }
 
   @GetMapping("/stock-summary")

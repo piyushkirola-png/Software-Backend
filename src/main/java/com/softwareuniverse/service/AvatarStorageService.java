@@ -28,8 +28,8 @@ public class AvatarStorageService {
   private static final long MAX_SIZE = 5 * 1024 * 1024L; // 5 MB
 
   /**
-   * Saves the file under uploads/avatars/<userId>-<uuid>.<ext>
-   * Returns the public URL path: /uploads/avatars/<filename>
+   * Saves the file under uploads/avatars/<userId>-<uuid>.<ext> Returns the public URL path:
+   * /uploads/avatars/<filename>
    */
   public String store(MultipartFile file, Long userId) {
     if (file == null || file.isEmpty()) {

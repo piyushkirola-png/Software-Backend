@@ -9,7 +9,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface AdminKeyService {
-
   /** Manually add a single key. */
   KeyResponse addKey(KeyUploadRequest request);
 
@@ -17,8 +16,9 @@ public interface AdminKeyService {
   KeyBatchUploadResponse bulkUploadCsv(
       MultipartFile file, Long productId, Long variantId, String batchName);
 
-  /** All keys (paginated), with optional filters. */
-  Page<KeyResponse> getAllKeys(int page, int size, String status, Long productId, Long variantId);
+  /** All keys (paginated), with optional filters including a text search on the license key. */
+  Page<KeyResponse> getAllKeys(
+      int page, int size, String status, Long productId, Long variantId, String search);
 
   /** Stock summary across all products/variants. */
   List<KeyStockResponse> getStockSummary();

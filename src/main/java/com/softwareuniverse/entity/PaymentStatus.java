@@ -1,7 +1,7 @@
 package com.softwareuniverse.entity;
 
 public enum PaymentStatus {
-  INITIATED,
+  PENDING,
   SUCCESS,
   FAILED
 }
