@@ -4,9 +4,11 @@ import com.softwareuniverse.common.exception.ResourceNotFoundException;
 import com.softwareuniverse.dto.response.ProductResponse;
 import com.softwareuniverse.dto.response.ProductVariantResponse;
 import com.softwareuniverse.entity.Category;
+import com.softwareuniverse.entity.KeyStatus;
 import com.softwareuniverse.entity.Product;
 import com.softwareuniverse.entity.ProductImage;
 import com.softwareuniverse.entity.ProductVariant;
+import com.softwareuniverse.repository.LicenseKeyRepository;
 import com.softwareuniverse.repository.ProductImageRepository;
 import com.softwareuniverse.repository.ProductRepository;
 import com.softwareuniverse.repository.ProductVariantRepository;
@@ -25,51 +27,81 @@ public class ProductServiceImpl implements ProductService {
   private final ProductRepository productRepository;
   private final ProductVariantRepository variantRepository;
   private final ProductImageRepository imageRepository;
+  private final LicenseKeyRepository licenseKeyRepository;
   private final CategoryService categoryService;
 
   @Override
   @Transactional(readOnly = true)
   public List<ProductResponse> getFeaturedProducts() {
-    return productRepository.findByIsFeaturedTrueAndIsActiveTrueOrderByDisplayOrderAsc().stream()
-        .map(this::toResponse)
-        .toList();
+    return productRepository
+      .findByIsFeaturedTrueAndIsActiveTrueOrderByDisplayOrderAsc()
+      .stream()
+      .map(this::toResponse)
+      .toList();
   }
 
   @Override
   @Transactional(readOnly = true)
   public Page<ProductResponse> getAllActiveProducts(
-      int page, int size, String sortBy, BigDecimal minPrice, BigDecimal maxPrice) {
+    int page,
+    int size,
+    String sortBy,
+    BigDecimal minPrice,
+    BigDecimal maxPrice
+  ) {
     Pageable pageable = PageRequest.of(page, size, resolveSort(sortBy));
     return productRepository
-        .findActiveByPriceRange(minPrice, maxPrice, pageable)
-        .map(this::toResponse);
+      .findActiveByPriceRange(minPrice, maxPrice, pageable)
+      .map(this::toResponse);
   }
 
   @Override
   @Transactional(readOnly = true)
   public Page<ProductResponse> getProductsByCategorySlug(
-      String slug, int page, int size, String sortBy, BigDecimal minPrice, BigDecimal maxPrice) {
+    String slug,
+    int page,
+    int size,
+    String sortBy,
+    BigDecimal minPrice,
+    BigDecimal maxPrice
+  ) {
     Category category = categoryService.resolveCategoryEntity(slug);
     Pageable pageable = PageRequest.of(page, size, resolveSort(sortBy));
     return productRepository
-        .findActiveByCategoryAndPriceRange(category.getId(), minPrice, maxPrice, pageable)
-        .map(this::toResponse);
+      .findActiveByCategoryAndPriceRange(
+        category.getId(),
+        minPrice,
+        maxPrice,
+        pageable
+      )
+      .map(this::toResponse);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public Page<ProductResponse> searchProducts(String query, int page, int size) {
-    Pageable pageable = PageRequest.of(page, size, Sort.by("displayOrder").ascending());
-    return productRepository.searchActive(query, pageable).map(this::toResponse);
+  public Page<ProductResponse> searchProducts(
+    String query,
+    int page,
+    int size
+  ) {
+    Pageable pageable = PageRequest.of(
+      page,
+      size,
+      Sort.by("displayOrder").ascending()
+    );
+    return productRepository
+      .searchActive(query, pageable)
+      .map(this::toResponse);
   }
 
   @Override
   @Transactional(readOnly = true)
   public ProductResponse getProductBySlug(String slug) {
-    Product product =
-        productRepository
-            .findBySlug(slug)
-            .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + slug));
+    Product product = productRepository
+      .findBySlug(slug)
+      .orElseThrow(() ->
+        new ResourceNotFoundException("Product not found: " + slug)
+      );
     return toResponse(product);
   }
 
@@ -85,62 +117,95 @@ public class ProductServiceImpl implements ProductService {
   }
 
   private ProductResponse toResponse(Product p) {
-    List<String> imageUrls =
-        imageRepository.findByProductIdOrderByDisplayOrderAsc(p.getId()).stream()
-            .map(ProductImage::getImageUrl)
-            .toList();
+    List<String> imageUrls = imageRepository
+      .findByProductIdOrderByDisplayOrderAsc(p.getId())
+      .stream()
+      .map(ProductImage::getImageUrl)
+      .toList();
 
-    List<ProductVariantResponse> variants =
-        Boolean.TRUE.equals(p.getHasVariants())
-            ? variantRepository
-                .findByProductIdAndIsActiveTrueOrderByDisplayOrderAsc(p.getId())
-                .stream()
-                .map(this::toVariantResponse)
-                .toList()
-            : List.of();
+    List<ProductVariantResponse> variants = Boolean.TRUE.equals(
+      p.getHasVariants()
+    )
+      ? variantRepository
+          .findByProductIdAndIsActiveTrueOrderByDisplayOrderAsc(p.getId())
+          .stream()
+          .map(this::toVariantResponse)
+          .toList()
+      : List.of();
+
+    // Real inventory = available license keys
+    Long availableKeys;
+    if (Boolean.TRUE.equals(p.getHasVariants())) {
+      // For variant products, sum available keys across all variants
+      availableKeys = variants
+        .stream()
+        .mapToLong(v ->
+          v.getAvailableKeys() != null ? v.getAvailableKeys() : 0L
+        )
+        .sum();
+    } else {
+      availableKeys = licenseKeyRepository.countByProductIdAndStatus(
+        p.getId(),
+        KeyStatus.AVAILABLE
+      );
+    }
 
     return ProductResponse.builder()
-        .id(p.getId())
-        .categoryId(p.getCategory() != null ? p.getCategory().getId() : null)
-        .categoryName(p.getCategory() != null ? p.getCategory().getName() : null)
-        .categorySlug(p.getCategory() != null ? p.getCategory().getSlug() : null)
-        .title(p.getTitle())
-        .slug(p.getSlug())
-        .description(p.getDescription())
-        .shortDescription(p.getShortDescription())
-        .seoKeywords(p.getSeoKeywords())
-        .mrp(p.getMrp())
-        .price(p.getPrice())
-        .discountPercent(calculateDiscount(p.getMrp(), p.getPrice()))
-        .thumbnailUrl(p.getThumbnailUrl())
-        .images(imageUrls)
-        .licenseType(p.getLicenseType())
-        .activationType(p.getActivationType())
-        .hasVariants(p.getHasVariants())
-        .stockQuantity(p.getStockQuantity())
-        .isFeatured(p.getIsFeatured())
-        .isActive(p.getIsActive())
-        .displayOrder(p.getDisplayOrder())
-        .ratingAvg(p.getRatingAvg())
-        .ratingCount(p.getRatingCount())
-        .variants(variants)
-        .build();
+      .id(p.getId())
+      .categoryId(p.getCategory() != null ? p.getCategory().getId() : null)
+      .categoryName(p.getCategory() != null ? p.getCategory().getName() : null)
+      .categorySlug(p.getCategory() != null ? p.getCategory().getSlug() : null)
+      .title(p.getTitle())
+      .slug(p.getSlug())
+      .description(p.getDescription())
+      .shortDescription(p.getShortDescription())
+      .seoKeywords(p.getSeoKeywords())
+      .mrp(p.getMrp())
+      .price(p.getPrice())
+      .discountPercent(calculateDiscount(p.getMrp(), p.getPrice()))
+      .thumbnailUrl(p.getThumbnailUrl())
+      .images(imageUrls)
+      .licenseType(p.getLicenseType())
+      .activationType(p.getActivationType())
+      .hasVariants(p.getHasVariants())
+      .stockQuantity(p.getStockQuantity())
+      .availableKeys(availableKeys)
+      .isFeatured(p.getIsFeatured())
+      .isActive(p.getIsActive())
+      .displayOrder(p.getDisplayOrder())
+      .ratingAvg(p.getRatingAvg())
+      .ratingCount(p.getRatingCount())
+      .variants(variants)
+      .build();
   }
 
   private ProductVariantResponse toVariantResponse(ProductVariant v) {
+    Long availableKeys =
+      licenseKeyRepository.countByProductIdAndVariantIdAndStatus(
+        v.getProduct().getId(),
+        v.getId(),
+        KeyStatus.AVAILABLE
+      );
+
     return ProductVariantResponse.builder()
-        .id(v.getId())
-        .variantName(v.getVariantName())
-        .mrp(v.getMrp())
-        .price(v.getPrice())
-        .stockQuantity(v.getStockQuantity())
-        .isActive(v.getIsActive())
-        .build();
+      .id(v.getId())
+      .variantName(v.getVariantName())
+      .mrp(v.getMrp())
+      .price(v.getPrice())
+      .stockQuantity(v.getStockQuantity())
+      .availableKeys(availableKeys)
+      .isActive(v.getIsActive())
+      .build();
   }
 
   private Integer calculateDiscount(BigDecimal mrp, BigDecimal price) {
-    if (mrp == null || price == null || mrp.compareTo(BigDecimal.ZERO) == 0) return 0;
+    if (
+      mrp == null || price == null || mrp.compareTo(BigDecimal.ZERO) == 0
+    ) return 0;
     BigDecimal diff = mrp.subtract(price);
-    return diff.multiply(BigDecimal.valueOf(100)).divide(mrp, 0, RoundingMode.HALF_UP).intValue();
+    return diff
+      .multiply(BigDecimal.valueOf(100))
+      .divide(mrp, 0, RoundingMode.HALF_UP)
+      .intValue();
   }
 }

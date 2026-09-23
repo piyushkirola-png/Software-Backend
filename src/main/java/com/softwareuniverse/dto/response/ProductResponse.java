@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductResponse {
+
   private Long id;
   private Long categoryId;
   private String categoryName;
@@ -30,6 +31,7 @@ public class ProductResponse {
   private String activationType;
   private Boolean hasVariants;
   private Integer stockQuantity;
+  private Long availableKeys;
   private Boolean isFeatured;
   private Boolean isActive;
   private Integer displayOrder;

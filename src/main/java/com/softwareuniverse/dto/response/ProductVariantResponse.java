@@ -11,10 +11,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductVariantResponse {
+
   private Long id;
   private String variantName;
   private BigDecimal mrp;
   private BigDecimal price;
   private Integer stockQuantity;
+  private Long availableKeys;
   private Boolean isActive;
 }

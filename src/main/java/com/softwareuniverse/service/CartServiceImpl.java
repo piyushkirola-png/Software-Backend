@@ -21,6 +21,7 @@ public class CartServiceImpl implements CartService {
   private final ProductRepository productRepository;
   private final ProductVariantRepository variantRepository;
   private final UserRepository userRepository;
+  private final LicenseKeyRepository licenseKeyRepository;
 
   @Override
   @Transactional
@@ -34,10 +35,9 @@ public class CartServiceImpl implements CartService {
   public CartResponse addToCart(Long userId, AddToCartRequest request) {
     Cart cart = getOrCreateCart(userId);
 
-    Product product =
-        productRepository
-            .findById(request.getProductId())
-            .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+    Product product = productRepository
+      .findById(request.getProductId())
+      .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
     if (!Boolean.TRUE.equals(product.getIsActive())) {
       throw new RuntimeException("Product is not available");
@@ -50,10 +50,9 @@ public class CartServiceImpl implements CartService {
       if (request.getVariantId() == null) {
         throw new RuntimeException("Please select a variant");
       }
-      variant =
-          variantRepository
-              .findById(request.getVariantId())
-              .orElseThrow(() -> new ResourceNotFoundException("Variant not found"));
+      variant = variantRepository
+        .findById(request.getVariantId())
+        .orElseThrow(() -> new ResourceNotFoundException("Variant not found"));
       if (!variant.getProduct().getId().equals(product.getId())) {
         throw new RuntimeException("Variant does not belong to this product");
       }
@@ -62,16 +61,43 @@ public class CartServiceImpl implements CartService {
 
     int quantity = request.getQuantity() != null ? request.getQuantity() : 1;
 
+    // Stock guard — real inventory is available license keys
+    long available;
+    if (variant != null) {
+      available = licenseKeyRepository.countByProductIdAndVariantIdAndStatus(
+        product.getId(),
+        variant.getId(),
+        KeyStatus.AVAILABLE
+      );
+    } else {
+      available = licenseKeyRepository.countByProductIdAndStatus(
+        product.getId(),
+        KeyStatus.AVAILABLE
+      );
+    }
+
+    if (available <= 0) {
+      throw new ResourceNotFoundException(
+        "Out of stock: " +
+          product.getTitle() +
+          (variant != null ? " (" + variant.getVariantName() + ")" : "")
+      );
+    }
+
     // Check if item already exists
     CartItem existing = null;
     if (variant != null) {
-      existing =
-          cartItemRepository
-              .findByCartIdAndProductIdAndVariantId(cart.getId(), product.getId(), variant.getId())
-              .orElse(null);
+      existing = cartItemRepository
+        .findByCartIdAndProductIdAndVariantId(
+          cart.getId(),
+          product.getId(),
+          variant.getId()
+        )
+        .orElse(null);
     } else {
-      existing =
-          cartItemRepository.findByCartIdAndProductId(cart.getId(), product.getId()).orElse(null);
+      existing = cartItemRepository
+        .findByCartIdAndProductId(cart.getId(), product.getId())
+        .orElse(null);
     }
 
     if (existing != null) {
@@ -92,13 +118,16 @@ public class CartServiceImpl implements CartService {
 
   @Override
   @Transactional
-  public CartResponse updateQuantity(Long userId, Long cartItemId, Integer quantity) {
+  public CartResponse updateQuantity(
+    Long userId,
+    Long cartItemId,
+    Integer quantity
+  ) {
     Cart cart = getOrCreateCart(userId);
 
-    CartItem item =
-        cartItemRepository
-            .findById(cartItemId)
-            .orElseThrow(() -> new ResourceNotFoundException("Cart item not found"));
+    CartItem item = cartItemRepository
+      .findById(cartItemId)
+      .orElseThrow(() -> new ResourceNotFoundException("Cart item not found"));
 
     if (!item.getCart().getId().equals(cart.getId())) {
       throw new RuntimeException("Unauthorized");
@@ -119,10 +148,9 @@ public class CartServiceImpl implements CartService {
   public CartResponse removeItem(Long userId, Long cartItemId) {
     Cart cart = getOrCreateCart(userId);
 
-    CartItem item =
-        cartItemRepository
-            .findById(cartItemId)
-            .orElseThrow(() -> new ResourceNotFoundException("Cart item not found"));
+    CartItem item = cartItemRepository
+      .findById(cartItemId)
+      .orElseThrow(() -> new ResourceNotFoundException("Cart item not found"));
 
     if (!item.getCart().getId().equals(cart.getId())) {
       throw new RuntimeException("Unauthorized");
@@ -143,63 +171,70 @@ public class CartServiceImpl implements CartService {
   @Transactional(readOnly = true)
   public Long getCartCount(Long userId) {
     return cartRepository
-        .findByUserId(userId)
-        .map(c -> cartItemRepository.countByCartId(c.getId()))
-        .orElse(0L);
+      .findByUserId(userId)
+      .map(c -> cartItemRepository.countByCartId(c.getId()))
+      .orElse(0L);
   }
 
   // ================= Helpers =================
 
   private Cart getOrCreateCart(Long userId) {
     return cartRepository
-        .findByUserId(userId)
-        .orElseGet(
-            () -> {
-              User user =
-                  userRepository
-                      .findById(userId)
-                      .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-              Cart cart = new Cart();
-              cart.setUser(user);
-              return cartRepository.save(cart);
-            });
+      .findByUserId(userId)
+      .orElseGet(() -> {
+        User user = userRepository
+          .findById(userId)
+          .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        Cart cart = new Cart();
+        cart.setUser(user);
+        return cartRepository.save(cart);
+      });
   }
 
   private CartResponse toResponse(Cart cart) {
     List<CartItem> items = cartItemRepository.findByCartId(cart.getId());
 
-    List<CartItemResponse> itemResponses =
-        items.stream()
-            .map(
-                item ->
-                    CartItemResponse.builder()
-                        .id(item.getId())
-                        .productId(item.getProduct().getId())
-                        .productTitle(item.getProduct().getTitle())
-                        .productSlug(item.getProduct().getSlug())
-                        .thumbnailUrl(item.getProduct().getThumbnailUrl())
-                        .variantId(item.getVariant() != null ? item.getVariant().getId() : null)
-                        .variantName(
-                            item.getVariant() != null ? item.getVariant().getVariantName() : null)
-                        .quantity(item.getQuantity())
-                        .unitPrice(item.getUnitPrice())
-                        .lineTotal(
-                            item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
-                        .build())
-            .toList();
+    List<CartItemResponse> itemResponses = items
+      .stream()
+      .map(item ->
+        CartItemResponse.builder()
+          .id(item.getId())
+          .productId(item.getProduct().getId())
+          .productTitle(item.getProduct().getTitle())
+          .productSlug(item.getProduct().getSlug())
+          .thumbnailUrl(item.getProduct().getThumbnailUrl())
+          .variantId(
+            item.getVariant() != null ? item.getVariant().getId() : null
+          )
+          .variantName(
+            item.getVariant() != null
+              ? item.getVariant().getVariantName()
+              : null
+          )
+          .quantity(item.getQuantity())
+          .unitPrice(item.getUnitPrice())
+          .lineTotal(
+            item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity()))
+          )
+          .build()
+      )
+      .toList();
 
-    BigDecimal subtotal =
-        itemResponses.stream()
-            .map(CartItemResponse::getLineTotal)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    BigDecimal subtotal = itemResponses
+      .stream()
+      .map(CartItemResponse::getLineTotal)
+      .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-    int totalItems = itemResponses.stream().mapToInt(CartItemResponse::getQuantity).sum();
+    int totalItems = itemResponses
+      .stream()
+      .mapToInt(CartItemResponse::getQuantity)
+      .sum();
 
     return CartResponse.builder()
-        .id(cart.getId())
-        .items(itemResponses)
-        .totalItems(totalItems)
-        .subtotal(subtotal)
-        .build();
+      .id(cart.getId())
+      .items(itemResponses)
+      .totalItems(totalItems)
+      .subtotal(subtotal)
+      .build();
   }
 }
