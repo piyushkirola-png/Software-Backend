@@ -23,7 +23,7 @@ public class OrderController {
   private final OrderService orderService;
   private final UserRepository userRepository;
 
-  /** Checkout — converts cart into a PENDING order (keys reserved). */
+  /** Checkout */
   @PostMapping("/checkout")
   public ResponseEntity<ApiResponse<OrderResponse>> checkout(
       Principal principal, @Valid @RequestBody CheckoutRequest request) {

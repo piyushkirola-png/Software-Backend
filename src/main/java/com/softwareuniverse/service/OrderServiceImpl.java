@@ -27,7 +27,6 @@ public class OrderServiceImpl implements OrderService {
   private final CartItemRepository cartItemRepository;
   private final UserRepository userRepository;
   private final AddressRepository addressRepository;
-  private final ProductRepository productRepository;
   private final LicenseKeyRepository licenseKeyRepository;
   private final CouponService couponService;
   private final InvoiceRepository invoiceRepository;

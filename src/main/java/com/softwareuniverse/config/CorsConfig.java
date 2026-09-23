@@ -18,7 +18,7 @@ public class CorsConfig {
   public CorsConfigurationSource corsConfigurationSource() {
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 
-    // === Payment gateway callbacks — permissive (no auth, no sensitive data) ===
+    // === Payment gateway callbacks ===
     CorsConfiguration gateway = new CorsConfiguration();
     gateway.setAllowedOriginPatterns(List.of("*"));
     gateway.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
@@ -32,7 +32,7 @@ public class CorsConfig {
     source.registerCorsConfiguration("/api/payments/cashfree/**", gateway);
     source.registerCorsConfiguration("/api/payments/sabpaisa/**", gateway);
 
-    // === Everything else — strict ===
+    // === Everything else ===
     CorsConfiguration strict = new CorsConfiguration();
     strict.setAllowedOriginPatterns(
         List.of(frontendUrl, "http://localhost:*", "http://127.0.0.1:*"));

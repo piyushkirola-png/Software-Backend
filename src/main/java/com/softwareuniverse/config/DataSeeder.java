@@ -20,7 +20,7 @@ public class DataSeeder implements CommandLineRunner {
   private static final String ADMIN_NAME = "Admin";
   private static final String ADMIN_EMAIL = "admin@softwareuniverse.in";
   private static final String ADMIN_PASSWORD = "Admin@123";
-  private static final String ADMIN_PHONE = "+919911611207";
+  private static final String ADMIN_PHONE = "+919876543210";
 
   @Override
   public void run(String... args) {

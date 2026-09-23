@@ -1,5 +1,7 @@
 package com.softwareuniverse.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.softwareuniverse.common.response.ApiResponse;
 import com.softwareuniverse.paymentgateway.WebhookHandler;
 import com.softwareuniverse.service.PaymentService;
@@ -47,7 +49,7 @@ public class WebhookController {
 
     try {
       Map<String, Object> payload =
-          new com.fasterxml.jackson.databind.ObjectMapper().readValue(rawBody, Map.class);
+          new ObjectMapper().readValue(rawBody, new TypeReference<Map<String, Object>>() {});
       WebhookHandler.WebhookResult result = handler.process(rawBody, payload, headers);
 
       log.info(

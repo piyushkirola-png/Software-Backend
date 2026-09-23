@@ -288,20 +288,20 @@ public class PaymentServiceImpl implements PaymentService {
 
   private PaymentResponse toResponse(Payment p) {
     return PaymentResponse.builder()
-      .id(p.getId())
-      .orderId(p.getOrder().getId())
-      .orderNumber(p.getOrder().getOrderNumber())
-      .gateway(p.getGateway())
-      .gatewayOrderId(p.getGatewayOrderId())
-      .gatewayPaymentId(p.getGatewayPaymentId())
-      .paymentLink(p.getPaymentLink())
-      .amount(p.getAmount())
-      .currency(p.getCurrency())
-      .status(p.getStatus().name())
-      .failureReason(p.getFailureReason())
-      .rawResponse(p.getRawResponse())
-      .createdAt(p.getCreatedAt())
-      .updatedAt(p.getUpdatedAt())
-      .build();
+        .id(p.getId())
+        .orderId(p.getOrder().getId())
+        .orderNumber(p.getOrder().getOrderNumber())
+        .gateway(p.getGateway())
+        .gatewayOrderId(p.getGatewayOrderId())
+        .gatewayPaymentId(p.getGatewayPaymentId())
+        .paymentLink(p.getPaymentLink())
+        .amount(p.getAmount())
+        .currency(p.getCurrency())
+        .status(p.getStatus().name())
+        .failureReason(p.getFailureReason())
+        .rawResponse(p.getRawResponse())
+        .createdAt(p.getCreatedAt())
+        .updatedAt(p.getUpdatedAt())
+        .build();
   }
 }

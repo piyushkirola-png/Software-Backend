@@ -177,10 +177,9 @@ public class AdminOrderServiceImpl implements AdminOrderService {
   @Override
   @Transactional(readOnly = true)
   public byte[] getInvoicePdf(Long orderId) {
-    Order order =
-        orderRepository
-            .findById(orderId)
-            .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+    orderRepository
+        .findById(orderId)
+        .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
     Invoice invoice =
         invoiceRepository

@@ -1,6 +1,5 @@
 package com.softwareuniverse.service;
 
-import com.softwareuniverse.repository.OtpCodeRepository;
 import com.softwareuniverse.repository.RevokedTokenRepository;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class TokenCleanupService {
 
   private final RevokedTokenRepository revokedTokenRepository;
-  private final OtpCodeRepository otpCodeRepository;
 
   @Scheduled(fixedRate = 60 * 60 * 1000) // every hour
   @Transactional

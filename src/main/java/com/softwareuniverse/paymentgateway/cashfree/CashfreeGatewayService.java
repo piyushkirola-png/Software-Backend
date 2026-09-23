@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -53,7 +54,6 @@ public class CashfreeGatewayService {
     return headers;
   }
 
-  @SuppressWarnings("unchecked")
   public boolean initiate(Payment payment, User user) {
     try {
       String orderId = payment.getGatewayOrderId();
@@ -84,8 +84,11 @@ public class CashfreeGatewayService {
       orderBody.put("order_meta", orderMeta);
 
       HttpEntity<Map<String, Object>> orderReq = new HttpEntity<>(orderBody, buildHeaders());
-      ResponseEntity<Map> orderResp =
-          restTemplate.exchange(baseUrl() + "/orders", HttpMethod.POST, orderReq, Map.class);
+      restTemplate.exchange(
+          baseUrl() + "/orders",
+          HttpMethod.POST,
+          orderReq,
+          new ParameterizedTypeReference<Map<String, Object>>() {});
 
       log.info("[Cashfree] Order created: {}", orderId);
 
@@ -119,8 +122,12 @@ public class CashfreeGatewayService {
       linkBody.put("link_meta", linkMeta);
 
       HttpEntity<Map<String, Object>> linkReq = new HttpEntity<>(linkBody, buildHeaders());
-      ResponseEntity<Map> linkResp =
-          restTemplate.exchange(baseUrl() + "/links", HttpMethod.POST, linkReq, Map.class);
+      ResponseEntity<Map<String, Object>> linkResp =
+          restTemplate.exchange(
+              baseUrl() + "/links",
+              HttpMethod.POST,
+              linkReq,
+              new ParameterizedTypeReference<Map<String, Object>>() {});
 
       Map<String, Object> linkData = linkResp.getBody();
       if (linkData == null || linkData.get("link_url") == null) {

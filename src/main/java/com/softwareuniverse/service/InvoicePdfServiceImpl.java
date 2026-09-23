@@ -31,7 +31,7 @@ public class InvoicePdfServiceImpl implements InvoicePdfService {
   private String uploadsDir;
 
   private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd MMM yyyy");
-  private static final String GSTIN = "06ABCDE1234F1Z5"; // TODO: move to config
+  private static final String GSTIN = "06ABCDE1234F1Z5";
   private static final String COMPANY_NAME = "Software Universe";
   private static final String COMPANY_ADDRESS =
       "330A, Durga Enclave, Gali No-7, Sehatpur, Faridabad, Haryana-121003";
@@ -164,7 +164,6 @@ public class InvoicePdfServiceImpl implements InvoicePdfService {
       String relativePath = "/uploads/invoices/" + fileName;
       log.info("Invoice PDF generated: {}", relativePath);
       return relativePath;
-
     } catch (Exception e) {
       log.error("Failed to generate invoice PDF: {}", e.getMessage(), e);
       throw new RuntimeException("Invoice generation failed: " + e.getMessage());

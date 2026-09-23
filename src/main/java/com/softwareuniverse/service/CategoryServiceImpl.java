@@ -4,7 +4,6 @@ import com.softwareuniverse.common.exception.ResourceNotFoundException;
 import com.softwareuniverse.dto.response.CategoryResponse;
 import com.softwareuniverse.entity.Category;
 import com.softwareuniverse.repository.CategoryRepository;
-import com.softwareuniverse.repository.ProductRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class CategoryServiceImpl implements CategoryService {
 
   private final CategoryRepository categoryRepository;
-  private final ProductRepository productRepository;
 
   @Override
   @Transactional(readOnly = true)
@@ -28,11 +26,37 @@ public class CategoryServiceImpl implements CategoryService {
   @Override
   @Transactional(readOnly = true)
   public CategoryResponse getCategoryBySlug(String slug) {
-    Category category =
-        categoryRepository
-            .findBySlug(slug)
-            .orElseThrow(() -> new ResourceNotFoundException("Category not found: " + slug));
-    return toResponse(category);
+    return toResponse(resolveCategoryEntity(slug));
+  }
+
+  /** Resolve a Category by slug with graceful fallbacks. */
+  @Override
+  @Transactional(readOnly = true)
+  public Category resolveCategoryEntity(String slug) {
+    if (slug == null || slug.isBlank()) {
+      throw new ResourceNotFoundException("Category not found: " + slug);
+    }
+
+    String trimmed = slug.trim();
+
+    // 1. Exact
+    var exact = categoryRepository.findBySlug(trimmed);
+    if (exact.isPresent()) return exact.get();
+
+    // 2. Case-insensitive
+    var ci = categoryRepository.findBySlugIgnoreCase(trimmed);
+    if (ci.isPresent()) return ci.get();
+
+    // 3. Substring — shortest slug wins
+    List<Category> partials =
+        categoryRepository.findBySlugContainingIgnoreCaseOrderBySlugAsc(trimmed);
+    if (!partials.isEmpty()) {
+      return partials.stream()
+          .min((a, b) -> Integer.compare(a.getSlug().length(), b.getSlug().length()))
+          .orElse(partials.get(0));
+    }
+
+    throw new ResourceNotFoundException("Category not found: " + slug);
   }
 
   private CategoryResponse toResponse(Category c) {

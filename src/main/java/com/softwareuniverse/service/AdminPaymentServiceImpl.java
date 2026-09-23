@@ -22,12 +22,7 @@ public class AdminPaymentServiceImpl implements AdminPaymentService {
   @Override
   @Transactional(readOnly = true)
   public Page<PaymentResponse> getAllPayments(
-    int page,
-    int size,
-    String status,
-    String gateway,
-    String search
-  ) {
+      int page, int size, String status, String gateway, String search) {
     Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
 
     PaymentStatus statusEnum = null;
@@ -41,44 +36,41 @@ public class AdminPaymentServiceImpl implements AdminPaymentService {
       }
     }
 
-    String gatewayParam = (gateway != null && !gateway.isBlank())
-      ? gateway.trim()
-      : null;
+    String gatewayParam = (gateway != null && !gateway.isBlank()) ? gateway.trim() : null;
 
-    String searchParam = (search != null && !search.isBlank())
-      ? search.trim()
-      : null;
+    String searchParam = (search != null && !search.isBlank()) ? search.trim() : null;
 
     return paymentRepository
-      .adminSearch(statusEnum, gatewayParam, searchParam, pageable)
-      .map(this::toResponse);
+        .adminSearch(statusEnum, gatewayParam, searchParam, pageable)
+        .map(this::toResponse);
   }
 
   @Override
   @Transactional(readOnly = true)
   public PaymentResponse getPayment(Long id) {
-    Payment p = paymentRepository
-      .findById(id)
-      .orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
+    Payment p =
+        paymentRepository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
     return toResponse(p);
   }
 
   private PaymentResponse toResponse(Payment p) {
     return PaymentResponse.builder()
-      .id(p.getId())
-      .orderId(p.getOrder() != null ? p.getOrder().getId() : null)
-      .orderNumber(p.getOrder() != null ? p.getOrder().getOrderNumber() : null)
-      .gateway(p.getGateway())
-      .gatewayOrderId(p.getGatewayOrderId())
-      .gatewayPaymentId(p.getGatewayPaymentId())
-      .paymentLink(p.getPaymentLink())
-      .amount(p.getAmount())
-      .currency(p.getCurrency())
-      .status(p.getStatus() != null ? p.getStatus().name() : null)
-      .failureReason(p.getFailureReason())
-      .rawResponse(p.getRawResponse())
-      .createdAt(p.getCreatedAt())
-      .updatedAt(p.getUpdatedAt())
-      .build();
+        .id(p.getId())
+        .orderId(p.getOrder() != null ? p.getOrder().getId() : null)
+        .orderNumber(p.getOrder() != null ? p.getOrder().getOrderNumber() : null)
+        .gateway(p.getGateway())
+        .gatewayOrderId(p.getGatewayOrderId())
+        .gatewayPaymentId(p.getGatewayPaymentId())
+        .paymentLink(p.getPaymentLink())
+        .amount(p.getAmount())
+        .currency(p.getCurrency())
+        .status(p.getStatus() != null ? p.getStatus().name() : null)
+        .failureReason(p.getFailureReason())
+        .rawResponse(p.getRawResponse())
+        .createdAt(p.getCreatedAt())
+        .updatedAt(p.getUpdatedAt())
+        .build();
   }
 }

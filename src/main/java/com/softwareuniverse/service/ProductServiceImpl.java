@@ -7,7 +7,6 @@ import com.softwareuniverse.entity.Category;
 import com.softwareuniverse.entity.Product;
 import com.softwareuniverse.entity.ProductImage;
 import com.softwareuniverse.entity.ProductVariant;
-import com.softwareuniverse.repository.CategoryRepository;
 import com.softwareuniverse.repository.ProductImageRepository;
 import com.softwareuniverse.repository.ProductRepository;
 import com.softwareuniverse.repository.ProductVariantRepository;
@@ -24,9 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProductServiceImpl implements ProductService {
 
   private final ProductRepository productRepository;
-  private final CategoryRepository categoryRepository;
   private final ProductVariantRepository variantRepository;
   private final ProductImageRepository imageRepository;
+  private final CategoryService categoryService;
 
   @Override
   @Transactional(readOnly = true)
@@ -38,22 +37,22 @@ public class ProductServiceImpl implements ProductService {
 
   @Override
   @Transactional(readOnly = true)
-  public Page<ProductResponse> getAllActiveProducts(int page, int size, String sortBy) {
+  public Page<ProductResponse> getAllActiveProducts(
+      int page, int size, String sortBy, BigDecimal minPrice, BigDecimal maxPrice) {
     Pageable pageable = PageRequest.of(page, size, resolveSort(sortBy));
-    return productRepository.findByIsActiveTrue(pageable).map(this::toResponse);
+    return productRepository
+        .findActiveByPriceRange(minPrice, maxPrice, pageable)
+        .map(this::toResponse);
   }
 
   @Override
   @Transactional(readOnly = true)
   public Page<ProductResponse> getProductsByCategorySlug(
-      String slug, int page, int size, String sortBy) {
-    Category category =
-        categoryRepository
-            .findBySlug(slug)
-            .orElseThrow(() -> new ResourceNotFoundException("Category not found: " + slug));
+      String slug, int page, int size, String sortBy, BigDecimal minPrice, BigDecimal maxPrice) {
+    Category category = categoryService.resolveCategoryEntity(slug);
     Pageable pageable = PageRequest.of(page, size, resolveSort(sortBy));
     return productRepository
-        .findByCategoryIdAndIsActiveTrue(category.getId(), pageable)
+        .findActiveByCategoryAndPriceRange(category.getId(), minPrice, maxPrice, pageable)
         .map(this::toResponse);
   }
 

@@ -26,10 +26,13 @@ public class ProductController {
   public ResponseEntity<ApiResponse<Page<ProductResponse>>> getAll(
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "12") int size,
-      @RequestParam(required = false) String sortBy) {
+      @RequestParam(required = false) String sortBy,
+      @RequestParam(required = false) java.math.BigDecimal minPrice,
+      @RequestParam(required = false) java.math.BigDecimal maxPrice) {
     return ResponseEntity.ok(
         ApiResponse.success(
-            "Products fetched", productService.getAllActiveProducts(page, size, sortBy)));
+            "Products fetched",
+            productService.getAllActiveProducts(page, size, sortBy, minPrice, maxPrice)));
   }
 
   @GetMapping("/category/{slug}")
@@ -37,11 +40,14 @@ public class ProductController {
       @PathVariable String slug,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "12") int size,
-      @RequestParam(required = false) String sortBy) {
+      @RequestParam(required = false) String sortBy,
+      @RequestParam(required = false) java.math.BigDecimal minPrice,
+      @RequestParam(required = false) java.math.BigDecimal maxPrice) {
     return ResponseEntity.ok(
         ApiResponse.success(
             "Products fetched",
-            productService.getProductsByCategorySlug(slug, page, size, sortBy)));
+            productService.getProductsByCategorySlug(
+                slug, page, size, sortBy, minPrice, maxPrice)));
   }
 
   @GetMapping("/search")

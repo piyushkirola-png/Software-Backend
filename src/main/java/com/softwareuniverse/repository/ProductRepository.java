@@ -12,7 +12,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
-
   Optional<Product> findBySlug(String slug);
 
   boolean existsBySlug(String slug);
@@ -24,6 +23,26 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
   Page<Product> findByIsActiveTrue(Pageable pageable);
 
   Page<Product> findByCategoryIdAndIsActiveTrue(Long categoryId, Pageable pageable);
+
+  @Query(
+      "SELECT p FROM Product p WHERE p.isActive = true AND "
+          + "(:minPrice IS NULL OR p.price >= :minPrice) AND "
+          + "(:maxPrice IS NULL OR p.price <= :maxPrice)")
+  Page<Product> findActiveByPriceRange(
+      @Param("minPrice") java.math.BigDecimal minPrice,
+      @Param("maxPrice") java.math.BigDecimal maxPrice,
+      Pageable pageable);
+
+  @Query(
+      "SELECT p FROM Product p WHERE p.isActive = true AND "
+          + "p.category.id = :categoryId AND "
+          + "(:minPrice IS NULL OR p.price >= :minPrice) AND "
+          + "(:maxPrice IS NULL OR p.price <= :maxPrice)")
+  Page<Product> findActiveByCategoryAndPriceRange(
+      @Param("categoryId") Long categoryId,
+      @Param("minPrice") java.math.BigDecimal minPrice,
+      @Param("maxPrice") java.math.BigDecimal maxPrice,
+      Pageable pageable);
 
   @Query(
       "SELECT p FROM Product p WHERE p.isActive = true AND "

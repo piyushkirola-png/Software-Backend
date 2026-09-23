@@ -27,7 +27,6 @@ public class PaymentController {
   @PostMapping("/initiate")
   public ResponseEntity<ApiResponse<PaymentInitiateResponse>> initiate(
       Principal principal, @Valid @RequestBody PaymentRequest request) {
-
     return ResponseEntity.ok(
         ApiResponse.success(
             "Payment initiated",
@@ -37,7 +36,6 @@ public class PaymentController {
   @GetMapping("/{paymentId}")
   public ResponseEntity<ApiResponse<PaymentResponse>> getById(
       Principal principal, @PathVariable Long paymentId) {
-
     return ResponseEntity.ok(
         ApiResponse.success(
             "Payment fetched", paymentService.getPaymentById(currentUserId(principal), paymentId)));
@@ -46,7 +44,6 @@ public class PaymentController {
   @GetMapping("/order/{orderId}")
   public ResponseEntity<ApiResponse<List<PaymentResponse>>> forOrder(
       Principal principal, @PathVariable Long orderId) {
-
     return ResponseEntity.ok(
         ApiResponse.success(
             "Payments fetched",
@@ -56,7 +53,6 @@ public class PaymentController {
   @PostMapping("/{paymentId}/simulate-success")
   public ResponseEntity<ApiResponse<PaymentResponse>> simulate(
       Principal principal, @PathVariable Long paymentId) {
-
     return ResponseEntity.ok(
         ApiResponse.success(
             "Payment simulated",
@@ -64,7 +60,6 @@ public class PaymentController {
   }
 
   private Long currentUserId(Principal principal) {
-
     if (principal == null) throw new ResourceNotFoundException("Unauthorized");
 
     User user =
