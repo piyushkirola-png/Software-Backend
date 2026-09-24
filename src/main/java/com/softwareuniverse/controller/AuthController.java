@@ -24,35 +24,65 @@ public class AuthController {
   private final OtpService otpService;
 
   @PostMapping("/register")
-  public ResponseEntity<ApiResponse<AuthResponse>> register(
-      @Valid @RequestBody RegisterRequest request) {
-    AuthResponse response = authService.register(request);
-    return ResponseEntity.ok(ApiResponse.success("Registered successfully", response));
+  public ResponseEntity<ApiResponse<java.util.Map<String, String>>> register(
+    @Valid @RequestBody RegisterRequest request
+  ) {
+    authService.register(request);
+    return ResponseEntity.ok(
+      ApiResponse.success(
+        "OTP sent to your email",
+        java.util.Map.of("email", request.getEmail())
+      )
+    );
+  }
+
+  @PostMapping("/verify-signup")
+  public ResponseEntity<ApiResponse<AuthResponse>> verifySignup(
+    @Valid @RequestBody VerifyOtpRequest request
+  ) {
+    AuthResponse response = authService.verifySignupOtp(
+      request.getEmail(),
+      request.getCode()
+    );
+    return ResponseEntity.ok(
+      ApiResponse.success("Email verified successfully", response)
+    );
   }
 
   @PostMapping("/login")
-  public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
+  public ResponseEntity<ApiResponse<AuthResponse>> login(
+    @Valid @RequestBody LoginRequest request
+  ) {
     AuthResponse response = authService.login(request);
     return ResponseEntity.ok(ApiResponse.success("Login successful", response));
   }
 
   @PostMapping("/otp/send")
-  public ResponseEntity<ApiResponse<Void>> sendOtp(@Valid @RequestBody SendOtpRequest request) {
+  public ResponseEntity<ApiResponse<Void>> sendOtp(
+    @Valid @RequestBody SendOtpRequest request
+  ) {
     authService.sendPasswordResetOtp(request.getEmail());
-    return ResponseEntity.ok(ApiResponse.success("OTP sent to your email", null));
+    return ResponseEntity.ok(
+      ApiResponse.success("OTP sent to your email", null)
+    );
   }
 
   @PostMapping("/otp/verify")
-  public ResponseEntity<ApiResponse<Void>> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
+  public ResponseEntity<ApiResponse<Void>> verifyOtp(
+    @Valid @RequestBody VerifyOtpRequest request
+  ) {
     otpService.verifyOtp(request.getEmail(), request.getCode());
     return ResponseEntity.ok(ApiResponse.success("OTP verified", null));
   }
 
   @PostMapping("/password/reset")
   public ResponseEntity<ApiResponse<Void>> resetPassword(
-      @Valid @RequestBody ResetPasswordRequest request) {
+    @Valid @RequestBody ResetPasswordRequest request
+  ) {
     authService.resetPassword(request);
-    return ResponseEntity.ok(ApiResponse.success("Password reset successful", null));
+    return ResponseEntity.ok(
+      ApiResponse.success("Password reset successful", null)
+    );
   }
 
   @PostMapping("/logout")
@@ -63,6 +93,8 @@ public class AuthController {
       token = header.substring(7);
     }
     authService.logout(token);
-    return ResponseEntity.ok(ApiResponse.success("Logged out successfully", null));
+    return ResponseEntity.ok(
+      ApiResponse.success("Logged out successfully", null)
+    );
   }
 }

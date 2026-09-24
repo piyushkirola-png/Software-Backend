@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -34,15 +33,25 @@ public class EmailService {
 
   public void sendOtp(String to, String code) {
     try {
-      SimpleMailMessage m = new SimpleMailMessage();
-      m.setFrom(fromEmail);
-      m.setTo(to);
-      m.setSubject("Password Reset OTP - Software Universe");
-      m.setText(
-          "Hello,\n\nYour OTP for password reset is: "
-              + code
-              + "\n\nValid for 10 minutes.\n\nSoftware Universe Team");
-      mailSender.send(m);
+      MimeMessage message = mailSender.createMimeMessage();
+      MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
+      helper.setFrom(fromEmail);
+      helper.setTo(to);
+      helper.setSubject("Your verification code â€” Software Universe");
+
+      String html = layout(
+        "Verify your email",
+        "<p style='margin:0 0 12px;color:#334155;font-size:15px;'>Hi there,</p>" +
+          "<p style='margin:0 0 20px;color:#334155;font-size:15px;'>Use the code below to verify your email address. This code is valid for <b>5 minutes</b>.</p>" +
+          "<div style='text-align:center;margin:28px 0;'>" +
+          "<div style='display:inline-block;background:#F1F5F9;border:1px solid #E2E8F0;border-radius:12px;padding:18px 32px;font-family:monospace;font-size:32px;font-weight:700;letter-spacing:8px;color:#0B1F3A;'>" +
+          code +
+          "</div></div>" +
+          "<p style='margin:20px 0 0;color:#64748B;font-size:13px;'>If you didn't request this code, you can safely ignore this email.</p>"
+      );
+
+      helper.setText(html, true);
+      mailSender.send(message);
       log.info("OTP email sent to {}", to);
     } catch (Exception e) {
       log.error("Failed to send OTP email to {}: {}", to, e.getMessage());
@@ -51,78 +60,104 @@ public class EmailService {
 
   public void sendWelcome(String to, String name) {
     try {
-      SimpleMailMessage m = new SimpleMailMessage();
-      m.setFrom(fromEmail);
-      m.setTo(to);
-      m.setSubject("Welcome to Software Universe!");
-      m.setText("Hi " + name + ",\n\nWelcome to Software Universe.\n\nSoftware Universe Team");
-      mailSender.send(m);
+      MimeMessage message = mailSender.createMimeMessage();
+      MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
+      helper.setFrom(fromEmail);
+      helper.setTo(to);
+      helper.setSubject("Welcome to Software Universe, " + name + "! ðŸŽ‰");
+
+      String body =
+        "<p style='margin:0 0 12px;color:#334155;font-size:15px;'>Hi " +
+        name +
+        ",</p>" +
+        "<p style='margin:0 0 24px;color:#334155;font-size:15px;'>Welcome aboard! Your account is verified and ready.</p>" +
+        "<p style='margin:0 0 12px;color:#0B1F3A;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;'>Here's what you can do right now</p>" +
+        "<table role='presentation' cellspacing='0' cellpadding='0' style='margin:0 0 28px;'>" +
+        "<tr><td style='padding:6px 0;color:#16A34A;font-size:16px;width:24px;'>âœ“</td><td style='padding:6px 0;color:#334155;font-size:14px;'>Browse 60+ genuine software licenses</td></tr>" +
+        "<tr><td style='padding:6px 0;color:#16A34A;font-size:16px;'>âœ“</td><td style='padding:6px 0;color:#334155;font-size:14px;'>Get instant email delivery with license keys</td></tr>" +
+        "<tr><td style='padding:6px 0;color:#16A34A;font-size:16px;'>âœ“</td><td style='padding:6px 0;color:#334155;font-size:14px;'>Download GST invoices anytime</td></tr>" +
+        "</table>" +
+        "<div style='text-align:center;margin:32px 0 8px;'>" +
+        "<a href='" +
+        frontendUrl +
+        "/products' style='display:inline-block;background:#2563EB;color:#FFFFFF;text-decoration:none;padding:14px 32px;border-radius:10px;font-weight:700;font-size:14px;'>Explore Products</a>" +
+        "</div>";
+
+      helper.setText(layout("Welcome to Software Universe!", body), true);
+      mailSender.send(message);
+      log.info("Welcome email sent to {}", to);
     } catch (Exception e) {
       log.error("Failed to send welcome email to {}: {}", to, e.getMessage());
     }
   }
 
-  /** Order confirmation with license keys + invoice PDF attached. */
-  public void sendOrderConfirmation(Order order, List<LicenseKey> keys, Invoice invoice) {
+  public void sendOrderConfirmation(
+    Order order,
+    List<LicenseKey> keys,
+    Invoice invoice
+  ) {
     try {
       MimeMessage message = mailSender.createMimeMessage();
       MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
       helper.setFrom(fromEmail);
       helper.setTo(order.getCustomerEmail());
-      helper.setSubject("Order Confirmed — " + order.getOrderNumber() + " | Software Universe");
+      helper.setSubject("Order Confirmed â€” " + order.getOrderNumber());
 
       StringBuilder keysHtml = new StringBuilder();
       for (LicenseKey k : keys) {
-        String line =
-            "<tr>"
-                + "<td style='padding:8px;border:1px solid #e5e7eb;'>"
-                + k.getProduct().getTitle()
-                + (k.getVariant() != null ? " (" + k.getVariant().getVariantName() + ")" : "")
-                + "</td>"
-                + "<td style='padding:8px;border:1px solid #e5e7eb;font-family:monospace;font-weight:bold;color:#2563eb;'>"
-                + k.getLicenseKey()
-                + "</td>"
-                + "</tr>";
-        keysHtml.append(line);
+        String title =
+          k.getProduct().getTitle() +
+          (k.getVariant() != null
+            ? " (" + k.getVariant().getVariantName() + ")"
+            : "");
+        keysHtml
+          .append(
+            "<div style='border:1px solid #E2E8F0;border-radius:12px;padding:16px 18px;margin-bottom:12px;background:#FAFBFC;'>"
+          )
+          .append(
+            "<div style='color:#0B1F3A;font-size:14px;font-weight:700;margin-bottom:8px;'>"
+          )
+          .append(escapeHtml(title))
+          .append("</div>")
+          .append(
+            "<div style='color:#64748B;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;'>License Key</div>"
+          )
+          .append(
+            "<div style='font-family:monospace;font-size:15px;font-weight:700;color:#2563EB;word-break:break-all;'>"
+          )
+          .append(escapeHtml(k.getLicenseKey()))
+          .append("</div>")
+          .append("</div>");
       }
 
-      String html =
-          "<div style='font-family:Arial,sans-serif;color:#0f172a;max-width:640px;margin:0 auto;'>"
-              + "<h2 style='color:#2563eb;'>Thank you for your order!</h2>"
-              + "<p>Hi "
-              + order.getUser().getName()
-              + ",</p>"
-              + "<p>Your order <b>"
-              + order.getOrderNumber()
-              + "</b> has been confirmed. Below are your license keys:</p>"
-              + "<table style='border-collapse:collapse;width:100%;margin:16px 0;'>"
-              + "<thead><tr>"
-              + "<th style='padding:8px;border:1px solid #e5e7eb;background:#f8fafc;text-align:left;'>Product</th>"
-              + "<th style='padding:8px;border:1px solid #e5e7eb;background:#f8fafc;text-align:left;'>License Key</th>"
-              + "</tr></thead>"
-              + "<tbody>"
-              + keysHtml
-              + "</tbody></table>"
-              + "<p><b>Total Paid:</b> ₹"
-              + order.getTotal()
-              + "</p>"
-              + "<p>Your GST invoice is attached with this email.</p>"
-              + "<p>You can also view your orders and download files from your dashboard: "
-              + "<a href='"
-              + frontendUrl
-              + "/my-account/orders'>"
-              + frontendUrl
-              + "/my-account/orders</a></p>"
-              + "<p style='color:#64748b;font-size:12px;'>For support, reply to this email or WhatsApp +91 9911611207.</p>"
-              + "<p>— Software Universe Team</p>"
-              + "</div>";
+      String body =
+        "<p style='margin:0 0 12px;color:#334155;font-size:15px;'>Hi " +
+        escapeHtml(order.getUser().getName()) +
+        ",</p>" +
+        "<p style='margin:0 0 6px;color:#334155;font-size:15px;'>Thank you for your purchase! Your order has been confirmed.</p>" +
+        "<p style='margin:0 0 24px;color:#64748B;font-size:13px;'>Order ID: <b style='color:#0B1F3A;'>" +
+        escapeHtml(order.getOrderNumber()) +
+        "</b></p>" +
+        "<p style='margin:0 0 12px;color:#0B1F3A;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;'>Your License Keys</p>" +
+        keysHtml +
+        "<div style='background:#F1F5F9;border-radius:12px;padding:16px 18px;margin:20px 0;'>" +
+        "<div style='color:#334155;font-size:13px;margin-bottom:6px;'>ðŸ’° <b>Total Paid:</b> <span style='color:#0B1F3A;font-size:15px;font-weight:700;'>â‚¹" +
+        order.getTotal() +
+        "</span></div>" +
+        "<div style='color:#334155;font-size:13px;'>ðŸ“Ž Your GST invoice is attached with this email.</div>" +
+        "</div>" +
+        "<p style='margin:24px 0 0;padding-top:20px;border-top:1px solid #E2E8F0;color:#64748B;font-size:13px;'>Need help? Reply to this email or WhatsApp <b style='color:#0B1F3A;'>+91 9911611207</b>.</p>";
 
-      helper.setText(html, true);
+      helper.setText(layout("Order Confirmed", body), true);
 
       // Attach invoice PDF
       if (invoice != null && invoice.getPdfPath() != null) {
-        String fileName = invoice.getPdfPath().substring(invoice.getPdfPath().lastIndexOf("/") + 1);
-        File pdfFile = Paths.get(uploadsDir, "invoices", fileName).toAbsolutePath().toFile();
+        String fileName = invoice
+          .getPdfPath()
+          .substring(invoice.getPdfPath().lastIndexOf("/") + 1);
+        File pdfFile = Paths.get(uploadsDir, "invoices", fileName)
+          .toAbsolutePath()
+          .toFile();
         if (pdfFile.exists()) {
           helper.addAttachment(fileName, new FileSystemResource(pdfFile));
         }
@@ -131,7 +166,54 @@ public class EmailService {
       mailSender.send(message);
       log.info("Order confirmation email sent to {}", order.getCustomerEmail());
     } catch (Exception e) {
-      log.error("Failed to send order confirmation email: {}", e.getMessage(), e);
+      log.error(
+        "Failed to send order confirmation email: {}",
+        e.getMessage(),
+        e
+      );
     }
+  }
+
+  /** Wraps body content in a branded email layout. */
+  private String layout(String title, String bodyContent) {
+    return (
+      "<!DOCTYPE html>" +
+      "<html><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width,initial-scale=1'></head>" +
+      "<body style='margin:0;padding:0;background:#F1F5F9;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;'>" +
+      "<table role='presentation' width='100%' cellspacing='0' cellpadding='0' style='background:#F1F5F9;padding:32px 16px;'>" +
+      "<tr><td align='center'>" +
+      "<table role='presentation' width='100%' cellspacing='0' cellpadding='0' style='max-width:560px;background:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(11,31,58,0.06);'>" +
+      // Header bar
+      "<tr><td style='background:#0B1F3A;padding:24px 32px;'>" +
+      "<div style='color:#FFFFFF;font-size:18px;font-weight:800;letter-spacing:-0.3px;'>Software <span style='color:#60A5FA;'>Universe</span></div>" +
+      "</td></tr>" +
+      // Title
+      "<tr><td style='padding:32px 32px 8px;'>" +
+      "<h1 style='margin:0;color:#0B1F3A;font-size:22px;font-weight:800;letter-spacing:-0.3px;'>" +
+      escapeHtml(title) +
+      "</h1></td></tr>" +
+      // Body
+      "<tr><td style='padding:16px 32px 32px;line-height:1.6;'>" +
+      bodyContent +
+      "</td></tr>" +
+      // Footer
+      "<tr><td style='background:#F8FAFC;border-top:1px solid #E2E8F0;padding:20px 32px;text-align:center;'>" +
+      "<div style='color:#64748B;font-size:12px;'>â€” Team Software Universe</div>" +
+      "</td></tr>" +
+      "</table>" +
+      "<div style='color:#94A3B8;font-size:11px;margin-top:20px;'>Â© " +
+      java.time.Year.now().getValue() +
+      " Software Universe. All rights reserved.</div>" +
+      "</td></tr></table></body></html>"
+    );
+  }
+
+  private String escapeHtml(String s) {
+    if (s == null) return "";
+    return s
+      .replace("&", "&amp;")
+      .replace("<", "&lt;")
+      .replace(">", "&gt;")
+      .replace("\"", "&quot;");
   }
 }

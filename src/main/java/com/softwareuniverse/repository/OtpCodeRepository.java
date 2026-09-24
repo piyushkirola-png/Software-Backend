@@ -7,9 +7,12 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface OtpCodeRepository extends JpaRepository<OtpCode, Long> {
-
   Optional<OtpCode> findTopByEmailAndCodeAndUsedFalseOrderByCreatedAtDesc(
-      String email, String code);
+    String email,
+    String code
+  );
+
+  Optional<OtpCode> findTopByEmailOrderByCreatedAtDesc(String email);
 
   void deleteByEmail(String email);
 }

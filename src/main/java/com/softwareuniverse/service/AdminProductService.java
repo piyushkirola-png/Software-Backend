@@ -5,8 +5,17 @@ import com.softwareuniverse.dto.response.ProductResponse;
 import org.springframework.data.domain.Page;
 
 public interface AdminProductService {
-
-  Page<ProductResponse> getAllProducts(int page, int size, String status, Long categoryId);
+  Page<ProductResponse> getAllProducts(
+    int page,
+    int size,
+    String name,
+    Long categoryId,
+    String status,
+    String licenseType,
+    java.math.BigDecimal minPrice,
+    java.math.BigDecimal maxPrice,
+    String sortBy
+  );
 
   ProductResponse getProduct(Long id);
 

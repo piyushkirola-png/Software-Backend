@@ -25,55 +25,82 @@ public class AdminProductServiceImpl implements AdminProductService {
 
   @Override
   @Transactional(readOnly = true)
-  public Page<ProductResponse> getAllProducts(int page, int size, String status, Long categoryId) {
-    Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+  public Page<ProductResponse> getAllProducts(
+    int page,
+    int size,
+    String name,
+    Long categoryId,
+    String status,
+    String licenseType,
+    java.math.BigDecimal minPrice,
+    java.math.BigDecimal maxPrice,
+    String sortBy
+  ) {
+    Pageable pageable = PageRequest.of(page, size, resolveAdminSort(sortBy));
 
-    Page<Product> products;
-    if (categoryId != null) {
-      products = productRepository.findByCategoryIdAndIsActiveTrue(categoryId, pageable);
-    } else {
-      products = productRepository.findAll(pageable);
+    Boolean statusActive = null;
+    if (
+      status != null && !status.isBlank() && !"ALL".equalsIgnoreCase(status)
+    ) {
+      statusActive = "active".equalsIgnoreCase(status);
     }
 
-    // Optional filter by status (active/inactive)
-    if (status != null && !status.isBlank()) {
-      boolean active = "active".equalsIgnoreCase(status);
-      List<Product> filtered =
-          products.getContent().stream()
-              .filter(p -> Boolean.valueOf(active).equals(p.getIsActive()))
-              .toList();
-      return new PageImpl<>(
-          filtered.stream().map(this::toResponse).toList(), pageable, filtered.size());
-    }
+    String nameTerm = (name != null && !name.isBlank()) ? name.trim() : null;
+    String licTerm = (licenseType != null &&
+      !licenseType.isBlank() &&
+      !"ALL".equalsIgnoreCase(licenseType))
+      ? licenseType.trim()
+      : null;
 
-    return products.map(this::toResponse);
+    return productRepository
+      .findAdminProducts(
+        nameTerm,
+        categoryId,
+        statusActive,
+        licTerm,
+        minPrice,
+        maxPrice,
+        pageable
+      )
+      .map(this::toResponse);
+  }
+
+  private Sort resolveAdminSort(String sortBy) {
+    if (sortBy == null) return Sort.by("createdAt").descending();
+    return switch (sortBy.toLowerCase()) {
+      case "name_asc" -> Sort.by("title").ascending();
+      case "name_desc" -> Sort.by("title").descending();
+      case "price_asc" -> Sort.by("price").ascending();
+      case "price_desc" -> Sort.by("price").descending();
+      case "oldest" -> Sort.by("createdAt").ascending();
+      default -> Sort.by("createdAt").descending();
+    };
   }
 
   @Override
   @Transactional(readOnly = true)
   public ProductResponse getProduct(Long id) {
-    Product p =
-        productRepository
-            .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+    Product p = productRepository
+      .findById(id)
+      .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
     return toResponse(p);
   }
 
   @Override
   @Transactional
   public ProductResponse createProduct(ProductRequest request) {
-    Category category =
-        categoryRepository
-            .findById(request.getCategoryId())
-            .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+    Category category = categoryRepository
+      .findById(request.getCategoryId())
+      .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
-    String slug =
-        (request.getSlug() != null && !request.getSlug().isBlank())
-            ? slugify(request.getSlug())
-            : slugify(request.getTitle());
+    String slug = (request.getSlug() != null && !request.getSlug().isBlank())
+      ? slugify(request.getSlug())
+      : slugify(request.getTitle());
 
     if (productRepository.existsBySlug(slug)) {
-      throw new RuntimeException("Product with this slug already exists: " + slug);
+      throw new RuntimeException(
+        "Product with this slug already exists: " + slug
+      );
     }
 
     Product p = new Product();
@@ -94,22 +121,22 @@ public class AdminProductServiceImpl implements AdminProductService {
   @Override
   @Transactional
   public ProductResponse updateProduct(Long id, ProductRequest request) {
-    Product p =
-        productRepository
-            .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+    Product p = productRepository
+      .findById(id)
+      .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
     if (request.getCategoryId() != null) {
-      Category category =
-          categoryRepository
-              .findById(request.getCategoryId())
-              .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+      Category category = categoryRepository
+        .findById(request.getCategoryId())
+        .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
       p.setCategory(category);
     }
 
     if (request.getSlug() != null && !request.getSlug().isBlank()) {
       String newSlug = slugify(request.getSlug());
-      if (!newSlug.equals(p.getSlug()) && productRepository.existsBySlug(newSlug)) {
+      if (
+        !newSlug.equals(p.getSlug()) && productRepository.existsBySlug(newSlug)
+      ) {
         throw new RuntimeException("Slug already in use");
       }
       p.setSlug(newSlug);
@@ -119,13 +146,18 @@ public class AdminProductServiceImpl implements AdminProductService {
     productRepository.save(p);
 
     if (request.getImages() != null) {
-      imageRepository.deleteAll(imageRepository.findByProductIdOrderByDisplayOrderAsc(p.getId()));
+      imageRepository.deleteAll(
+        imageRepository.findByProductIdOrderByDisplayOrderAsc(p.getId())
+      );
       saveImages(p, request.getImages());
     }
 
     if (request.getVariants() != null) {
       variantRepository.deleteAll(
-          variantRepository.findByProductIdAndIsActiveTrueOrderByDisplayOrderAsc(p.getId()));
+        variantRepository.findByProductIdAndIsActiveTrueOrderByDisplayOrderAsc(
+          p.getId()
+        )
+      );
       saveVariants(p, request.getVariants());
     }
 
@@ -135,20 +167,18 @@ public class AdminProductServiceImpl implements AdminProductService {
   @Override
   @Transactional
   public void deleteProduct(Long id) {
-    Product p =
-        productRepository
-            .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+    Product p = productRepository
+      .findById(id)
+      .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
     productRepository.delete(p);
   }
 
   @Override
   @Transactional
   public ProductResponse toggleActive(Long id) {
-    Product p =
-        productRepository
-            .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+    Product p = productRepository
+      .findById(id)
+      .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
     p.setIsActive(!Boolean.TRUE.equals(p.getIsActive()));
     productRepository.save(p);
     return toResponse(p);
@@ -159,14 +189,20 @@ public class AdminProductServiceImpl implements AdminProductService {
   private void applyRequest(Product p, ProductRequest r) {
     if (r.getTitle() != null) p.setTitle(r.getTitle());
     if (r.getDescription() != null) p.setDescription(r.getDescription());
-    if (r.getShortDescription() != null) p.setShortDescription(r.getShortDescription());
+    if (r.getShortDescription() != null) p.setShortDescription(
+      r.getShortDescription()
+    );
     if (r.getSeoKeywords() != null) p.setSeoKeywords(r.getSeoKeywords());
     if (r.getMrp() != null) p.setMrp(r.getMrp());
     if (r.getPrice() != null) p.setPrice(r.getPrice());
     if (r.getThumbnailUrl() != null) p.setThumbnailUrl(r.getThumbnailUrl());
-    if (r.getDownloadFilePath() != null) p.setDownloadFilePath(r.getDownloadFilePath());
+    if (r.getDownloadFilePath() != null) p.setDownloadFilePath(
+      r.getDownloadFilePath()
+    );
     if (r.getLicenseType() != null) p.setLicenseType(r.getLicenseType());
-    if (r.getActivationType() != null) p.setActivationType(r.getActivationType());
+    if (r.getActivationType() != null) p.setActivationType(
+      r.getActivationType()
+    );
     if (r.getHasVariants() != null) p.setHasVariants(r.getHasVariants());
     if (r.getStockQuantity() != null) p.setStockQuantity(r.getStockQuantity());
     if (r.getIsFeatured() != null) p.setIsFeatured(r.getIsFeatured());
@@ -187,7 +223,10 @@ public class AdminProductServiceImpl implements AdminProductService {
     }
   }
 
-  private void saveVariants(Product p, List<ProductRequest.ProductVariantRequest> variants) {
+  private void saveVariants(
+    Product p,
+    List<ProductRequest.ProductVariantRequest> variants
+  ) {
     if (variants == null || variants.isEmpty()) return;
     int order = 1;
     for (ProductRequest.ProductVariantRequest v : variants) {
@@ -199,8 +238,12 @@ public class AdminProductServiceImpl implements AdminProductService {
       pv.setVariantName(v.getVariantName());
       pv.setMrp(v.getMrp());
       pv.setPrice(v.getPrice());
-      pv.setStockQuantity(v.getStockQuantity() != null ? v.getStockQuantity() : 0);
-      pv.setDisplayOrder(v.getDisplayOrder() != null ? v.getDisplayOrder() : order);
+      pv.setStockQuantity(
+        v.getStockQuantity() != null ? v.getStockQuantity() : 0
+      );
+      pv.setDisplayOrder(
+        v.getDisplayOrder() != null ? v.getDisplayOrder() : order
+      );
       pv.setIsActive(v.getIsActive() != null ? v.getIsActive() : true);
       variantRepository.save(pv);
       order++;
@@ -208,64 +251,75 @@ public class AdminProductServiceImpl implements AdminProductService {
   }
 
   private String slugify(String s) {
-    return s.toLowerCase().trim().replaceAll("[^a-z0-9]+", "-").replaceAll("^-|-$", "");
+    return s
+      .toLowerCase()
+      .trim()
+      .replaceAll("[^a-z0-9]+", "-")
+      .replaceAll("^-|-$", "");
   }
 
   private ProductResponse toResponse(Product p) {
-    List<String> images =
-        imageRepository.findByProductIdOrderByDisplayOrderAsc(p.getId()).stream()
-            .map(ProductImage::getImageUrl)
-            .toList();
+    List<String> images = imageRepository
+      .findByProductIdOrderByDisplayOrderAsc(p.getId())
+      .stream()
+      .map(ProductImage::getImageUrl)
+      .toList();
 
-    List<ProductVariantResponse> variants =
-        Boolean.TRUE.equals(p.getHasVariants())
-            ? variantRepository
-                .findByProductIdAndIsActiveTrueOrderByDisplayOrderAsc(p.getId())
-                .stream()
-                .map(
-                    v ->
-                        ProductVariantResponse.builder()
-                            .id(v.getId())
-                            .variantName(v.getVariantName())
-                            .mrp(v.getMrp())
-                            .price(v.getPrice())
-                            .stockQuantity(v.getStockQuantity())
-                            .isActive(v.getIsActive())
-                            .build())
-                .toList()
-            : List.of();
+    List<ProductVariantResponse> variants = Boolean.TRUE.equals(
+      p.getHasVariants()
+    )
+      ? variantRepository
+          .findByProductIdAndIsActiveTrueOrderByDisplayOrderAsc(p.getId())
+          .stream()
+          .map(v ->
+            ProductVariantResponse.builder()
+              .id(v.getId())
+              .variantName(v.getVariantName())
+              .mrp(v.getMrp())
+              .price(v.getPrice())
+              .stockQuantity(v.getStockQuantity())
+              .isActive(v.getIsActive())
+              .build()
+          )
+          .toList()
+      : List.of();
 
     return ProductResponse.builder()
-        .id(p.getId())
-        .categoryId(p.getCategory() != null ? p.getCategory().getId() : null)
-        .categoryName(p.getCategory() != null ? p.getCategory().getName() : null)
-        .categorySlug(p.getCategory() != null ? p.getCategory().getSlug() : null)
-        .title(p.getTitle())
-        .slug(p.getSlug())
-        .description(p.getDescription())
-        .shortDescription(p.getShortDescription())
-        .seoKeywords(p.getSeoKeywords())
-        .mrp(p.getMrp())
-        .price(p.getPrice())
-        .discountPercent(calculateDiscount(p.getMrp(), p.getPrice()))
-        .thumbnailUrl(p.getThumbnailUrl())
-        .images(images)
-        .licenseType(p.getLicenseType())
-        .activationType(p.getActivationType())
-        .hasVariants(p.getHasVariants())
-        .stockQuantity(p.getStockQuantity())
-        .isFeatured(p.getIsFeatured())
-        .isActive(p.getIsActive())
-        .displayOrder(p.getDisplayOrder())
-        .ratingAvg(p.getRatingAvg())
-        .ratingCount(p.getRatingCount())
-        .variants(variants)
-        .build();
+      .id(p.getId())
+      .categoryId(p.getCategory() != null ? p.getCategory().getId() : null)
+      .categoryName(p.getCategory() != null ? p.getCategory().getName() : null)
+      .categorySlug(p.getCategory() != null ? p.getCategory().getSlug() : null)
+      .title(p.getTitle())
+      .slug(p.getSlug())
+      .description(p.getDescription())
+      .shortDescription(p.getShortDescription())
+      .seoKeywords(p.getSeoKeywords())
+      .mrp(p.getMrp())
+      .price(p.getPrice())
+      .discountPercent(calculateDiscount(p.getMrp(), p.getPrice()))
+      .thumbnailUrl(p.getThumbnailUrl())
+      .images(images)
+      .licenseType(p.getLicenseType())
+      .activationType(p.getActivationType())
+      .hasVariants(p.getHasVariants())
+      .stockQuantity(p.getStockQuantity())
+      .isFeatured(p.getIsFeatured())
+      .isActive(p.getIsActive())
+      .displayOrder(p.getDisplayOrder())
+      .ratingAvg(p.getRatingAvg())
+      .ratingCount(p.getRatingCount())
+      .variants(variants)
+      .build();
   }
 
   private Integer calculateDiscount(BigDecimal mrp, BigDecimal price) {
-    if (mrp == null || price == null || mrp.compareTo(BigDecimal.ZERO) == 0) return 0;
+    if (
+      mrp == null || price == null || mrp.compareTo(BigDecimal.ZERO) == 0
+    ) return 0;
     BigDecimal diff = mrp.subtract(price);
-    return diff.multiply(BigDecimal.valueOf(100)).divide(mrp, 0, RoundingMode.HALF_UP).intValue();
+    return diff
+      .multiply(BigDecimal.valueOf(100))
+      .divide(mrp, 0, RoundingMode.HALF_UP)
+      .intValue();
   }
 }

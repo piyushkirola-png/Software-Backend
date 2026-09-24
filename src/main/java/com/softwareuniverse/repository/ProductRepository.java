@@ -18,37 +18,66 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
   List<Product> findByIsFeaturedTrueAndIsActiveTrueOrderByDisplayOrderAsc();
 
-  List<Product> findByCategoryIdAndIsActiveTrueOrderByDisplayOrderAsc(Long categoryId);
+  List<Product> findByCategoryIdAndIsActiveTrueOrderByDisplayOrderAsc(
+    Long categoryId
+  );
 
   Page<Product> findByIsActiveTrue(Pageable pageable);
 
-  Page<Product> findByCategoryIdAndIsActiveTrue(Long categoryId, Pageable pageable);
+  Page<Product> findByCategoryIdAndIsActiveTrue(
+    Long categoryId,
+    Pageable pageable
+  );
 
   @Query(
-      "SELECT p FROM Product p WHERE p.isActive = true AND "
-          + "(:minPrice IS NULL OR p.price >= :minPrice) AND "
-          + "(:maxPrice IS NULL OR p.price <= :maxPrice)")
+    "SELECT p FROM Product p WHERE p.isActive = true AND " +
+      "(:minPrice IS NULL OR p.price >= :minPrice) AND " +
+      "(:maxPrice IS NULL OR p.price <= :maxPrice)"
+  )
   Page<Product> findActiveByPriceRange(
-      @Param("minPrice") java.math.BigDecimal minPrice,
-      @Param("maxPrice") java.math.BigDecimal maxPrice,
-      Pageable pageable);
+    @Param("minPrice") java.math.BigDecimal minPrice,
+    @Param("maxPrice") java.math.BigDecimal maxPrice,
+    Pageable pageable
+  );
 
   @Query(
-      "SELECT p FROM Product p WHERE p.isActive = true AND "
-          + "p.category.id = :categoryId AND "
-          + "(:minPrice IS NULL OR p.price >= :minPrice) AND "
-          + "(:maxPrice IS NULL OR p.price <= :maxPrice)")
+    "SELECT p FROM Product p WHERE p.isActive = true AND " +
+      "p.category.id = :categoryId AND " +
+      "(:minPrice IS NULL OR p.price >= :minPrice) AND " +
+      "(:maxPrice IS NULL OR p.price <= :maxPrice)"
+  )
   Page<Product> findActiveByCategoryAndPriceRange(
-      @Param("categoryId") Long categoryId,
-      @Param("minPrice") java.math.BigDecimal minPrice,
-      @Param("maxPrice") java.math.BigDecimal maxPrice,
-      Pageable pageable);
+    @Param("categoryId") Long categoryId,
+    @Param("minPrice") java.math.BigDecimal minPrice,
+    @Param("maxPrice") java.math.BigDecimal maxPrice,
+    Pageable pageable
+  );
 
   @Query(
-      "SELECT p FROM Product p WHERE p.isActive = true AND "
-          + "(LOWER(p.title) LIKE LOWER(CONCAT('%', :q, '%')) OR "
-          + " LOWER(p.shortDescription) LIKE LOWER(CONCAT('%', :q, '%')))")
+    "SELECT p FROM Product p WHERE p.isActive = true AND " +
+      "(LOWER(p.title) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
+      " LOWER(p.shortDescription) LIKE LOWER(CONCAT('%', :q, '%')))"
+  )
   Page<Product> searchActive(@Param("q") String query, Pageable pageable);
 
   long countByIsActiveTrue();
+
+  @Query(
+    "SELECT p FROM Product p WHERE " +
+      "(:name IS NULL OR LOWER(p.title) LIKE LOWER(CONCAT('%', :name, '%'))) " +
+      "AND (:categoryId IS NULL OR p.category.id = :categoryId) " +
+      "AND (:statusActive IS NULL OR p.isActive = :statusActive) " +
+      "AND (:licenseType IS NULL OR p.licenseType = :licenseType) " +
+      "AND (:minPrice IS NULL OR p.price >= :minPrice) " +
+      "AND (:maxPrice IS NULL OR p.price <= :maxPrice)"
+  )
+  Page<Product> findAdminProducts(
+    @Param("name") String name,
+    @Param("categoryId") Long categoryId,
+    @Param("statusActive") Boolean statusActive,
+    @Param("licenseType") String licenseType,
+    @Param("minPrice") java.math.BigDecimal minPrice,
+    @Param("maxPrice") java.math.BigDecimal maxPrice,
+    Pageable pageable
+  );
 }

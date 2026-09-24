@@ -6,8 +6,9 @@ import com.softwareuniverse.dto.request.ResetPasswordRequest;
 import com.softwareuniverse.dto.response.AuthResponse;
 
 public interface AuthService {
+  void register(RegisterRequest request);
 
-  AuthResponse register(RegisterRequest request);
+  AuthResponse verifySignupOtp(String email, String code);
 
   AuthResponse login(LoginRequest request);
 

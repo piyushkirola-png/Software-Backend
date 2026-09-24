@@ -65,6 +65,9 @@ public class User implements UserDetails {
   @Column(name = "is_active")
   private Boolean isActive = true;
 
+  @Column(name = "is_verified")
+  private Boolean isVerified = true;
+
   @Column(name = "created_at")
   private LocalDateTime createdAt;
 
@@ -77,6 +80,7 @@ public class User implements UserDetails {
     updatedAt = LocalDateTime.now();
     if (isActive == null) isActive = true;
     if (role == null) role = Role.USER;
+    if (isVerified == null) isVerified = false;
   }
 
   @PreUpdate

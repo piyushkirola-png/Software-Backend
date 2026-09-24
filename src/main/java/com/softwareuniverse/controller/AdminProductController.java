@@ -21,34 +21,66 @@ public class AdminProductController {
 
   @GetMapping
   public ResponseEntity<ApiResponse<Page<ProductResponse>>> getAll(
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "20") int size,
-      @RequestParam(required = false) String status,
-      @RequestParam(required = false) Long categoryId) {
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "10") int size,
+    @RequestParam(required = false) String name,
+    @RequestParam(required = false) Long categoryId,
+    @RequestParam(required = false) String status,
+    @RequestParam(required = false) String licenseType,
+    @RequestParam(required = false) java.math.BigDecimal minPrice,
+    @RequestParam(required = false) java.math.BigDecimal maxPrice,
+    @RequestParam(required = false) String sortBy
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success(
-            "Products fetched",
-            adminProductService.getAllProducts(page, size, status, categoryId)));
+      ApiResponse.success(
+        "Products fetched",
+        adminProductService.getAllProducts(
+          page,
+          size,
+          name,
+          categoryId,
+          status,
+          licenseType,
+          minPrice,
+          maxPrice,
+          sortBy
+        )
+      )
+    );
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<ApiResponse<ProductResponse>> get(@PathVariable Long id) {
+  public ResponseEntity<ApiResponse<ProductResponse>> get(
+    @PathVariable Long id
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success("Product fetched", adminProductService.getProduct(id)));
+      ApiResponse.success("Product fetched", adminProductService.getProduct(id))
+    );
   }
 
   @PostMapping
   public ResponseEntity<ApiResponse<ProductResponse>> create(
-      @Valid @RequestBody ProductRequest request) {
+    @Valid @RequestBody ProductRequest request
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success("Product created", adminProductService.createProduct(request)));
+      ApiResponse.success(
+        "Product created",
+        adminProductService.createProduct(request)
+      )
+    );
   }
 
   @PutMapping("/{id}")
   public ResponseEntity<ApiResponse<ProductResponse>> update(
-      @PathVariable Long id, @Valid @RequestBody ProductRequest request) {
+    @PathVariable Long id,
+    @Valid @RequestBody ProductRequest request
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success("Product updated", adminProductService.updateProduct(id, request)));
+      ApiResponse.success(
+        "Product updated",
+        adminProductService.updateProduct(id, request)
+      )
+    );
   }
 
   @DeleteMapping("/{id}")
@@ -58,8 +90,14 @@ public class AdminProductController {
   }
 
   @PostMapping("/{id}/toggle-active")
-  public ResponseEntity<ApiResponse<ProductResponse>> toggleActive(@PathVariable Long id) {
+  public ResponseEntity<ApiResponse<ProductResponse>> toggleActive(
+    @PathVariable Long id
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success("Product toggled", adminProductService.toggleActive(id)));
+      ApiResponse.success(
+        "Product toggled",
+        adminProductService.toggleActive(id)
+      )
+    );
   }
 }
