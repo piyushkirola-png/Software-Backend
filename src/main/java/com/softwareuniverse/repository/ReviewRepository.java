@@ -9,11 +9,14 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Long> {
-
   Page<Review> findByProductIdAndIsApprovedTrueOrderByCreatedAtDesc(
-      Long productId, Pageable pageable);
+    Long productId,
+    Pageable pageable
+  );
 
-  List<Review> findTop10ByIsApprovedTrueAndIsVerifiedPurchaseTrueOrderByCreatedAtDesc();
+  List<
+    Review
+  > findTop10ByIsApprovedTrueAndIsVerifiedPurchaseTrueOrderByCreatedAtDesc();
 
   Page<Review> findByIsApprovedFalseOrderByCreatedAtDesc(Pageable pageable);
 

@@ -21,21 +21,30 @@ public class AdminUserServiceImpl implements AdminUserService {
   @Override
   @Transactional(readOnly = true)
   public Page<UserResponse> getAllUsers(int page, int size, String search) {
-    Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+    Pageable pageable = PageRequest.of(
+      page,
+      size,
+      Sort.by("createdAt").descending()
+    );
     Page<User> users = userRepository.findAll(pageable);
 
     if (search != null && !search.isBlank()) {
       String q = search.toLowerCase();
-      List<User> filtered =
-          users.getContent().stream()
-              .filter(
-                  u ->
-                      u.getName().toLowerCase().contains(q)
-                          || u.getEmail().toLowerCase().contains(q)
-                          || (u.getPhone() != null && u.getPhone().contains(search)))
-              .toList();
+      List<User> filtered = users
+        .getContent()
+        .stream()
+        .filter(
+          u ->
+            u.getName().toLowerCase().contains(q) ||
+            u.getEmail().toLowerCase().contains(q) ||
+            (u.getPhone() != null && u.getPhone().contains(search))
+        )
+        .toList();
       return new PageImpl<>(
-          filtered.stream().map(this::toResponse).toList(), pageable, filtered.size());
+        filtered.stream().map(this::toResponse).toList(),
+        pageable,
+        filtered.size()
+      );
     }
 
     return users.map(this::toResponse);
@@ -44,22 +53,22 @@ public class AdminUserServiceImpl implements AdminUserService {
   @Override
   @Transactional(readOnly = true)
   public UserResponse getUser(Long id) {
-    User u =
-        userRepository
-            .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    User u = userRepository
+      .findById(id)
+      .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     return toResponse(u);
   }
 
   @Override
   @Transactional
   public UserResponse updateUser(Long id, AdminUserUpdateRequest request) {
-    User u =
-        userRepository
-            .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    User u = userRepository
+      .findById(id)
+      .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-    if (request.getName() != null && !request.getName().isBlank()) u.setName(request.getName());
+    if (request.getName() != null && !request.getName().isBlank()) u.setName(
+      request.getName()
+    );
     if (request.getPhone() != null) u.setPhone(request.getPhone());
 
     if (request.getRole() != null && !request.getRole().isBlank()) {
@@ -79,10 +88,9 @@ public class AdminUserServiceImpl implements AdminUserService {
   @Override
   @Transactional
   public UserResponse toggleActive(Long id) {
-    User u =
-        userRepository
-            .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    User u = userRepository
+      .findById(id)
+      .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
     u.setIsActive(!Boolean.TRUE.equals(u.getIsActive()));
     userRepository.save(u);
@@ -92,10 +100,9 @@ public class AdminUserServiceImpl implements AdminUserService {
   @Override
   @Transactional
   public void deleteUser(Long id) {
-    User u =
-        userRepository
-            .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    User u = userRepository
+      .findById(id)
+      .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
     if (u.getRole() == Role.ADMIN) {
       long adminCount = userRepository.countByRole(Role.ADMIN);
@@ -109,14 +116,14 @@ public class AdminUserServiceImpl implements AdminUserService {
 
   private UserResponse toResponse(User u) {
     return UserResponse.builder()
-        .id(u.getId())
-        .name(u.getName())
-        .email(u.getEmail())
-        .phone(u.getPhone())
-        .avatarUrl(u.getAvatarUrl())
-        .role(u.getRole().name())
-        .isActive(u.getIsActive())
-        .createdAt(u.getCreatedAt())
-        .build();
+      .id(u.getId())
+      .name(u.getName())
+      .email(u.getEmail())
+      .phone(u.getPhone())
+      .avatarUrl(u.getAvatarUrl())
+      .role(u.getRole().name())
+      .isActive(u.getIsActive())
+      .createdAt(u.getCreatedAt())
+      .build();
   }
 }

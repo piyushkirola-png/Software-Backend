@@ -6,8 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface NewsletterSubscriberRepository extends JpaRepository<NewsletterSubscriber, Long> {
-
+public interface NewsletterSubscriberRepository
+  extends JpaRepository<NewsletterSubscriber, Long>
+{
   Optional<NewsletterSubscriber> findByEmail(String email);
 
   boolean existsByEmail(String email);

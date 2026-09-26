@@ -8,7 +8,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface AdminDashboardService {
-
   DashboardStatsResponse getDashboardStats();
 
   List<RecentOrderResponse> getRecentOrders(int limit);

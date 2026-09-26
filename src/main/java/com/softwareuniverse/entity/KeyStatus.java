@@ -4,5 +4,5 @@ public enum KeyStatus {
   AVAILABLE,
   RESERVED,
   SOLD,
-  REVOKED
+  REVOKED,
 }

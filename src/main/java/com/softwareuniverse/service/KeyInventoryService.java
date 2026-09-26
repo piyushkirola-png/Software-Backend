@@ -5,7 +5,6 @@ import com.softwareuniverse.entity.LicenseKey;
 import java.util.List;
 
 public interface KeyInventoryService {
-
   List<LicenseKey> findKeysByOrder(Long orderId);
 
   List<KeyResponse> getMyKeys(Long userId);

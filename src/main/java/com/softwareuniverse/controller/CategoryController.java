@@ -18,12 +18,22 @@ public class CategoryController {
   @GetMapping
   public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAll() {
     return ResponseEntity.ok(
-        ApiResponse.success("Categories fetched", categoryService.getAllActiveCategories()));
+      ApiResponse.success(
+        "Categories fetched",
+        categoryService.getAllActiveCategories()
+      )
+    );
   }
 
   @GetMapping("/{slug}")
-  public ResponseEntity<ApiResponse<CategoryResponse>> getBySlug(@PathVariable String slug) {
+  public ResponseEntity<ApiResponse<CategoryResponse>> getBySlug(
+    @PathVariable String slug
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success("Category fetched", categoryService.getCategoryBySlug(slug)));
+      ApiResponse.success(
+        "Category fetched",
+        categoryService.getCategoryBySlug(slug)
+      )
+    );
   }
 }

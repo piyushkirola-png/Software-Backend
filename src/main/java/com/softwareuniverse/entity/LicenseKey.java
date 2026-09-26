@@ -9,11 +9,12 @@ import lombok.Setter;
 
 @Entity
 @Table(
-    name = "license_keys",
-    indexes = {
-      @Index(name = "idx_key_status", columnList = "status"),
-      @Index(name = "idx_key_product", columnList = "product_id")
-    })
+  name = "license_keys",
+  indexes = {
+    @Index(name = "idx_key_status", columnList = "status"),
+    @Index(name = "idx_key_product", columnList = "product_id"),
+  }
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -36,7 +37,12 @@ public class LicenseKey {
   private String licenseKey;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
+  @Column(
+    name = "status",
+    nullable = false,
+    length = 20,
+    columnDefinition = "VARCHAR(20)"
+  )
   private KeyStatus status = KeyStatus.AVAILABLE;
 
   @ManyToOne(fetch = FetchType.LAZY)

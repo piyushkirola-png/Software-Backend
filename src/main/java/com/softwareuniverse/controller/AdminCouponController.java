@@ -21,32 +21,60 @@ public class AdminCouponController {
 
   @GetMapping
   public ResponseEntity<ApiResponse<Page<CouponResponse>>> getAll(
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "20") int size,
-      @RequestParam(required = false) String status) {
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "20") int size,
+    @RequestParam(required = false) String status,
+    @RequestParam(required = false) String type,
+    @RequestParam(required = false) java.math.BigDecimal valueMin,
+    @RequestParam(required = false) java.math.BigDecimal valueMax
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success(
-            "Coupons fetched", adminCouponService.getAllCoupons(page, size, status)));
+      ApiResponse.success(
+        "Coupons fetched",
+        adminCouponService.getAllCoupons(
+          page,
+          size,
+          status,
+          type,
+          valueMin,
+          valueMax
+        )
+      )
+    );
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<ApiResponse<CouponResponse>> get(@PathVariable Long id) {
+  public ResponseEntity<ApiResponse<CouponResponse>> get(
+    @PathVariable Long id
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success("Coupon fetched", adminCouponService.getCoupon(id)));
+      ApiResponse.success("Coupon fetched", adminCouponService.getCoupon(id))
+    );
   }
 
   @PostMapping
   public ResponseEntity<ApiResponse<CouponResponse>> create(
-      @Valid @RequestBody CouponRequest request) {
+    @Valid @RequestBody CouponRequest request
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success("Coupon created", adminCouponService.createCoupon(request)));
+      ApiResponse.success(
+        "Coupon created",
+        adminCouponService.createCoupon(request)
+      )
+    );
   }
 
   @PutMapping("/{id}")
   public ResponseEntity<ApiResponse<CouponResponse>> update(
-      @PathVariable Long id, @Valid @RequestBody CouponRequest request) {
+    @PathVariable Long id,
+    @Valid @RequestBody CouponRequest request
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success("Coupon updated", adminCouponService.updateCoupon(id, request)));
+      ApiResponse.success(
+        "Coupon updated",
+        adminCouponService.updateCoupon(id, request)
+      )
+    );
   }
 
   @DeleteMapping("/{id}")
@@ -56,8 +84,11 @@ public class AdminCouponController {
   }
 
   @PostMapping("/{id}/toggle-active")
-  public ResponseEntity<ApiResponse<CouponResponse>> toggle(@PathVariable Long id) {
+  public ResponseEntity<ApiResponse<CouponResponse>> toggle(
+    @PathVariable Long id
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success("Coupon toggled", adminCouponService.toggleActive(id)));
+      ApiResponse.success("Coupon toggled", adminCouponService.toggleActive(id))
+    );
   }
 }

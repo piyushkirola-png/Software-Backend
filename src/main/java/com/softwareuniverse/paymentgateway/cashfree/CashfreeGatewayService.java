@@ -41,8 +41,8 @@ public class CashfreeGatewayService {
 
   private String baseUrl() {
     return "production".equalsIgnoreCase(mode)
-        ? "https://api.cashfree.com/pg"
-        : "https://sandbox.cashfree.com/pg";
+      ? "https://api.cashfree.com/pg"
+      : "https://sandbox.cashfree.com/pg";
   }
 
   private HttpHeaders buildHeaders() {
@@ -59,9 +59,12 @@ public class CashfreeGatewayService {
       String orderId = payment.getGatewayOrderId();
       BigDecimal amount = payment.getAmount();
 
-      String customerName = user.getName() != null ? user.getName() : "Customer";
+      String customerName =
+        user.getName() != null ? user.getName() : "Customer";
       String customerEmail =
-          user.getEmail() != null ? user.getEmail() : "customer_" + user.getId() + "@jyotishai.com";
+        user.getEmail() != null
+          ? user.getEmail()
+          : "customer_" + user.getId() + "@jyotishai.com";
       String customerPhone = sanitizePhone(user.getPhone());
 
       Map<String, Object> orderBody = new HashMap<>();
@@ -83,12 +86,16 @@ public class CashfreeGatewayService {
       orderMeta.put("payment_methods", "cc,dc,upi,nb,app,paylater");
       orderBody.put("order_meta", orderMeta);
 
-      HttpEntity<Map<String, Object>> orderReq = new HttpEntity<>(orderBody, buildHeaders());
+      HttpEntity<Map<String, Object>> orderReq = new HttpEntity<>(
+        orderBody,
+        buildHeaders()
+      );
       restTemplate.exchange(
-          baseUrl() + "/orders",
-          HttpMethod.POST,
-          orderReq,
-          new ParameterizedTypeReference<Map<String, Object>>() {});
+        baseUrl() + "/orders",
+        HttpMethod.POST,
+        orderReq,
+        new ParameterizedTypeReference<Map<String, Object>>() {}
+      );
 
       log.info("[Cashfree] Order created: {}", orderId);
 
@@ -113,7 +120,10 @@ public class CashfreeGatewayService {
       linkBody.put("link_auto_reminders", false);
 
       String expiry =
-          LocalDateTime.now().plusHours(24).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + "Z";
+        LocalDateTime.now()
+          .plusHours(24)
+          .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) +
+        "Z";
       linkBody.put("link_expiry_time", expiry);
 
       Map<String, Object> linkMeta = new HashMap<>();
@@ -121,17 +131,23 @@ public class CashfreeGatewayService {
       linkMeta.put("notify_url", backendUrl + "/api/webhooks/cashfree");
       linkBody.put("link_meta", linkMeta);
 
-      HttpEntity<Map<String, Object>> linkReq = new HttpEntity<>(linkBody, buildHeaders());
-      ResponseEntity<Map<String, Object>> linkResp =
-          restTemplate.exchange(
-              baseUrl() + "/links",
-              HttpMethod.POST,
-              linkReq,
-              new ParameterizedTypeReference<Map<String, Object>>() {});
+      HttpEntity<Map<String, Object>> linkReq = new HttpEntity<>(
+        linkBody,
+        buildHeaders()
+      );
+      ResponseEntity<Map<String, Object>> linkResp = restTemplate.exchange(
+        baseUrl() + "/links",
+        HttpMethod.POST,
+        linkReq,
+        new ParameterizedTypeReference<Map<String, Object>>() {}
+      );
 
       Map<String, Object> linkData = linkResp.getBody();
       if (linkData == null || linkData.get("link_url") == null) {
-        log.error("[Cashfree] Payment link creation returned no URL for {}", orderId);
+        log.error(
+          "[Cashfree] Payment link creation returned no URL for {}",
+          orderId
+        );
         return false;
       }
 
@@ -141,24 +157,27 @@ public class CashfreeGatewayService {
       return true;
     } catch (org.springframework.web.client.HttpClientErrorException e) {
       log.error(
-          "[Cashfree] 4xx on initiate for {}: {} — {}",
-          payment.getGatewayOrderId(),
-          e.getStatusCode(),
-          e.getResponseBodyAsString());
+        "[Cashfree] 4xx on initiate for {}: {} — {}",
+        payment.getGatewayOrderId(),
+        e.getStatusCode(),
+        e.getResponseBodyAsString()
+      );
       return false;
     } catch (org.springframework.web.client.HttpServerErrorException e) {
       log.error(
-          "[Cashfree] 5xx on initiate for {}: {} — {}",
-          payment.getGatewayOrderId(),
-          e.getStatusCode(),
-          e.getResponseBodyAsString());
+        "[Cashfree] 5xx on initiate for {}: {} — {}",
+        payment.getGatewayOrderId(),
+        e.getStatusCode(),
+        e.getResponseBodyAsString()
+      );
       return false;
     } catch (Exception e) {
       log.error(
-          "[Cashfree] Unexpected error on initiate for {}: {}",
-          payment.getGatewayOrderId(),
-          e.getMessage(),
-          e);
+        "[Cashfree] Unexpected error on initiate for {}: {}",
+        payment.getGatewayOrderId(),
+        e.getMessage(),
+        e
+      );
       return false;
     }
   }

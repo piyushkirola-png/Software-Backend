@@ -10,5 +10,5 @@ public class PaymentRequest {
   private Long orderId;
 
   @NotNull(message = "Gateway is required")
-  private String gateway; // RAZORPAY, CASHFREE, PAYU, SABPAISA
+  private String gateway;
 }

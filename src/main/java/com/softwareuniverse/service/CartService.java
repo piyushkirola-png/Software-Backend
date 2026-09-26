@@ -4,7 +4,6 @@ import com.softwareuniverse.dto.request.AddToCartRequest;
 import com.softwareuniverse.dto.response.CartResponse;
 
 public interface CartService {
-
   CartResponse getCart(Long userId);
 
   CartResponse addToCart(Long userId, AddToCartRequest request);

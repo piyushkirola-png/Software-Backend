@@ -7,6 +7,6 @@ public class AdminUserUpdateRequest {
 
   private String name;
   private String phone;
-  private String role; // USER or ADMIN
+  private String role;
   private Boolean isActive;
 }

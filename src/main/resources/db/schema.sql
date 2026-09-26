@@ -11,7 +11,7 @@ CREATE TABLE
         email VARCHAR(150) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
         role VARCHAR(20) NOT NULL DEFAULT 'USER',
-        is_verified TINYINT(1) NOT NULL DEFAULT 1,
+        is_verified TINYINT (1) NOT NULL DEFAULT 1,
         phone VARCHAR(20),
         avatar_url VARCHAR(500),
         is_active BOOLEAN NOT NULL DEFAULT TRUE,

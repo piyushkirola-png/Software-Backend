@@ -13,8 +13,8 @@
     <groupId>com.softwareuniverse</groupId>
     <artifactId>softwareuniverse</artifactId>
     <version>1.0.0</version>
-    <name>Software Universe</name>
-    <description>Software Universe API</description>
+    <name>Softora</name>
+    <description>Softora API</description>
     <properties>
         <java.version>17</java.version>
         <jjwt.version>0.11.5</jjwt.version>

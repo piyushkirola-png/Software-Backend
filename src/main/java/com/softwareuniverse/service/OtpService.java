@@ -23,20 +23,22 @@ public class OtpService {
 
   @Transactional
   public void sendOtp(String email, String purpose) {
-    // Enforce resend cooldown
-    var recent =
-        otpCodeRepository.findTopByEmailOrderByCreatedAtDesc(email).orElse(null);
+    var recent = otpCodeRepository
+      .findTopByEmailOrderByCreatedAtDesc(email)
+      .orElse(null);
     if (recent != null && recent.getCreatedAt() != null) {
-      long secondsSince =
-          java.time.Duration.between(recent.getCreatedAt(), LocalDateTime.now()).getSeconds();
+      long secondsSince = java.time.Duration.between(
+        recent.getCreatedAt(),
+        LocalDateTime.now()
+      ).getSeconds();
       if (secondsSince < RESEND_COOLDOWN_SECONDS) {
         long waitLeft = RESEND_COOLDOWN_SECONDS - secondsSince;
         throw new RuntimeException(
-            "Please wait " + waitLeft + " seconds before requesting a new OTP");
+          "Please wait " + waitLeft + " seconds before requesting a new OTP"
+        );
       }
     }
 
-    // Delete any previous OTPs for this email
     otpCodeRepository.deleteByEmail(email);
 
     String code = String.format("%06d", new Random().nextInt(1000000));
@@ -50,15 +52,19 @@ public class OtpService {
     otpCodeRepository.save(otp);
 
     emailService.sendOtp(email, code);
-    log.info("OTP generated for {} [{}] â€” code: {} (dev mode)", email, purpose, code);
+    log.info(
+      "OTP generated for {} [{}] â€” code: {} (dev mode)",
+      email,
+      purpose,
+      code
+    );
   }
 
   @Transactional(readOnly = true)
   public void verifyOtp(String email, String code) {
-    OtpCode otp =
-        otpCodeRepository
-            .findTopByEmailAndCodeAndUsedFalseOrderByCreatedAtDesc(email, code)
-            .orElseThrow(() -> new ResourceNotFoundException("Invalid OTP"));
+    OtpCode otp = otpCodeRepository
+      .findTopByEmailAndCodeAndUsedFalseOrderByCreatedAtDesc(email, code)
+      .orElseThrow(() -> new ResourceNotFoundException("Invalid OTP"));
 
     if (otp.getExpiresAt().isBefore(LocalDateTime.now())) {
       throw new RuntimeException("OTP has expired");
@@ -67,10 +73,9 @@ public class OtpService {
 
   @Transactional(readOnly = true)
   public void verifyOtp(String email, String code, String purpose) {
-    OtpCode otp =
-        otpCodeRepository
-            .findTopByEmailAndCodeAndUsedFalseOrderByCreatedAtDesc(email, code)
-            .orElseThrow(() -> new ResourceNotFoundException("Invalid OTP"));
+    OtpCode otp = otpCodeRepository
+      .findTopByEmailAndCodeAndUsedFalseOrderByCreatedAtDesc(email, code)
+      .orElseThrow(() -> new ResourceNotFoundException("Invalid OTP"));
 
     if (!purpose.equalsIgnoreCase(otp.getPurpose())) {
       throw new RuntimeException("Invalid OTP purpose");
@@ -84,11 +89,10 @@ public class OtpService {
   @Transactional
   public void markUsed(String email, String code) {
     otpCodeRepository
-        .findTopByEmailAndCodeAndUsedFalseOrderByCreatedAtDesc(email, code)
-        .ifPresent(
-            otp -> {
-              otp.setUsed(true);
-              otpCodeRepository.save(otp);
-            });
+      .findTopByEmailAndCodeAndUsedFalseOrderByCreatedAtDesc(email, code)
+      .ifPresent(otp -> {
+        otp.setUsed(true);
+        otpCodeRepository.save(otp);
+      });
   }
 }

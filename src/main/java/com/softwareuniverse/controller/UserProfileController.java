@@ -26,22 +26,35 @@ public class UserProfileController {
   private final AvatarStorageService avatarStorageService;
 
   @GetMapping
-  public ResponseEntity<ApiResponse<UserResponse>> getProfile(Principal principal) {
+  public ResponseEntity<ApiResponse<UserResponse>> getProfile(
+    Principal principal
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success("Profile fetched", userService.getProfile(currentUserId(principal))));
+      ApiResponse.success(
+        "Profile fetched",
+        userService.getProfile(currentUserId(principal))
+      )
+    );
   }
 
   @PutMapping
   public ResponseEntity<ApiResponse<UserResponse>> updateProfile(
-      Principal principal, @Valid @RequestBody UpdateProfileRequest request) {
+    Principal principal,
+    @Valid @RequestBody UpdateProfileRequest request
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success(
-            "Profile updated", userService.updateProfile(currentUserId(principal), request)));
+      ApiResponse.success(
+        "Profile updated",
+        userService.updateProfile(currentUserId(principal), request)
+      )
+    );
   }
 
   @PostMapping("/avatar")
   public ResponseEntity<ApiResponse<UserResponse>> uploadAvatar(
-      Principal principal, @RequestParam("file") MultipartFile file) {
+    Principal principal,
+    @RequestParam("file") MultipartFile file
+  ) {
     Long userId = currentUserId(principal);
     String url = avatarStorageService.store(file, userId);
 
@@ -54,17 +67,18 @@ public class UserProfileController {
 
   @PostMapping("/change-password")
   public ResponseEntity<ApiResponse<Void>> changePassword(
-      Principal principal, @Valid @RequestBody ChangePasswordRequest request) {
+    Principal principal,
+    @Valid @RequestBody ChangePasswordRequest request
+  ) {
     userService.changePassword(currentUserId(principal), request);
     return ResponseEntity.ok(ApiResponse.success("Password changed", null));
   }
 
   private Long currentUserId(Principal principal) {
     if (principal == null) throw new ResourceNotFoundException("Unauthorized");
-    User user =
-        userRepository
-            .findByEmail(principal.getName())
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    User user = userRepository
+      .findByEmail(principal.getName())
+      .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     return user.getId();
   }
 }

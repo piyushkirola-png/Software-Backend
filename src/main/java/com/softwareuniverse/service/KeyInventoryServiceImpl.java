@@ -29,28 +29,33 @@ public class KeyInventoryServiceImpl implements KeyInventoryService {
   @Override
   @Transactional(readOnly = true)
   public List<KeyResponse> getMyKeys(Long userId) {
-    // Get all SUCCESS orders for this user → get all keys assigned to those orders
-    List<Order> orders = orderRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    List<Order> orders = orderRepository.findByUserIdOrderByCreatedAtDesc(
+      userId
+    );
 
-    return orders.stream()
-        .filter(o -> o.getStatus() == OrderStatus.SUCCESS)
-        .flatMap(o -> licenseKeyRepository.findByOrderId(o.getId()).stream())
-        .filter(k -> k.getStatus() == KeyStatus.SOLD)
-        .map(this::toResponse)
-        .toList();
+    return orders
+      .stream()
+      .filter(o -> o.getStatus() == OrderStatus.SUCCESS)
+      .flatMap(o -> licenseKeyRepository.findByOrderId(o.getId()).stream())
+      .filter(k -> k.getStatus() == KeyStatus.SOLD)
+      .map(this::toResponse)
+      .toList();
   }
 
   @Override
   @Transactional(readOnly = true)
   public List<KeyResponse> getKeysForOrder(Long userId, Long orderId) {
-    Order order =
-        orderRepository
-            .findById(orderId)
-            .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+    Order order = orderRepository
+      .findById(orderId)
+      .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
     if (!order.getUser().getId().equals(userId)) {
       throw new RuntimeException("Unauthorized");
     }
-    return licenseKeyRepository.findByOrderId(orderId).stream().map(this::toResponse).toList();
+    return licenseKeyRepository
+      .findByOrderId(orderId)
+      .stream()
+      .map(this::toResponse)
+      .toList();
   }
 
   @Override
@@ -58,21 +63,38 @@ public class KeyInventoryServiceImpl implements KeyInventoryService {
   public long countAvailable(Long productId, Long variantId) {
     if (variantId != null) {
       return licenseKeyRepository.countByProductIdAndVariantIdAndStatus(
-          productId, variantId, KeyStatus.AVAILABLE);
+        productId,
+        variantId,
+        KeyStatus.AVAILABLE
+      );
     }
-    return licenseKeyRepository.countByProductIdAndStatus(productId, KeyStatus.AVAILABLE);
+    return licenseKeyRepository.countByProductIdAndStatus(
+      productId,
+      KeyStatus.AVAILABLE
+    );
   }
 
   private KeyResponse toResponse(LicenseKey k) {
+    var product = k.getProduct();
+    var variant = k.getVariant();
+    var order = k.getOrder();
+
     return KeyResponse.builder()
-        .id(k.getId())
-        .productId(k.getProduct().getId())
-        .productTitle(k.getProduct().getTitle())
-        .variantId(k.getVariant() != null ? k.getVariant().getId() : null)
-        .variantName(k.getVariant() != null ? k.getVariant().getVariantName() : null)
-        .licenseKey(k.getLicenseKey())
-        .status(k.getStatus().name())
-        .soldAt(k.getSoldAt())
-        .build();
+      .id(k.getId())
+      .productId(product != null ? product.getId() : null)
+      .productTitle(product != null ? product.getTitle() : null)
+      .productSlug(product != null ? product.getSlug() : null)
+      .productThumbnailUrl(product != null ? product.getThumbnailUrl() : null)
+      .productDownloadUrl(
+        product != null ? product.getDownloadFilePath() : null
+      )
+      .variantId(variant != null ? variant.getId() : null)
+      .variantName(variant != null ? variant.getVariantName() : null)
+      .licenseKey(k.getLicenseKey())
+      .status(k.getStatus() != null ? k.getStatus().name() : null)
+      .orderId(order != null ? order.getId() : null)
+      .orderNumber(order != null ? order.getOrderNumber() : null)
+      .soldAt(k.getSoldAt())
+      .build();
   }
 }

@@ -15,7 +15,7 @@ public class CouponRequest {
   private String description;
 
   @NotNull(message = "Type is required")
-  private String type; // PERCENT or FLAT
+  private String type;
 
   @NotNull(message = "Value is required")
   private BigDecimal value;

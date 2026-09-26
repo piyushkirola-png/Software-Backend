@@ -19,20 +19,66 @@ public class AdminPaymentController {
 
   @GetMapping
   public ResponseEntity<ApiResponse<Page<PaymentResponse>>> getAll(
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "20") int size,
-      @RequestParam(required = false) String status,
-      @RequestParam(required = false) String gateway,
-      @RequestParam(required = false) String search) {
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "20") int size,
+    @RequestParam(required = false) String status,
+    @RequestParam(required = false) String gateway,
+    @RequestParam(required = false) String orderNumber,
+    @RequestParam(required = false) String paymentId,
+    @RequestParam(required = false) java.math.BigDecimal minAmount,
+    @RequestParam(required = false) java.math.BigDecimal maxAmount
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success(
-            "Payments fetched",
-            adminPaymentService.getAllPayments(page, size, status, gateway, search)));
+      ApiResponse.success(
+        "Payments fetched",
+        adminPaymentService.getAllPayments(
+          page,
+          size,
+          status,
+          gateway,
+          orderNumber,
+          paymentId,
+          minAmount,
+          maxAmount
+        )
+      )
+    );
+  }
+
+  @GetMapping("/export-csv")
+  public ResponseEntity<byte[]> exportCsv(
+    @RequestParam(required = false) String status,
+    @RequestParam(required = false) String gateway,
+    @RequestParam(required = false) String orderNumber,
+    @RequestParam(required = false) String paymentId,
+    @RequestParam(required = false) java.math.BigDecimal minAmount,
+    @RequestParam(required = false) java.math.BigDecimal maxAmount
+  ) {
+    byte[] data = adminPaymentService.exportPaymentsCsv(
+      status,
+      gateway,
+      orderNumber,
+      paymentId,
+      minAmount,
+      maxAmount
+    );
+    return ResponseEntity.ok()
+      .header(
+        org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+        "attachment; filename=payments.csv"
+      )
+      .contentType(
+        org.springframework.http.MediaType.parseMediaType("text/csv")
+      )
+      .body(data);
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<ApiResponse<PaymentResponse>> get(@PathVariable Long id) {
+  public ResponseEntity<ApiResponse<PaymentResponse>> get(
+    @PathVariable Long id
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success("Payment fetched", adminPaymentService.getPayment(id)));
+      ApiResponse.success("Payment fetched", adminPaymentService.getPayment(id))
+    );
   }
 }

@@ -136,7 +136,6 @@ public class ProductServiceImpl implements ProductService {
     // Real inventory = available license keys
     Long availableKeys;
     if (Boolean.TRUE.equals(p.getHasVariants())) {
-      // For variant products, sum available keys across all variants
       availableKeys = variants
         .stream()
         .mapToLong(v ->

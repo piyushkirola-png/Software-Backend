@@ -7,5 +7,7 @@ import lombok.Data;
 @Data
 public class NewsletterRequest {
 
-  @NotBlank @Email private String email;
+  @NotBlank
+  @Email
+  private String email;
 }

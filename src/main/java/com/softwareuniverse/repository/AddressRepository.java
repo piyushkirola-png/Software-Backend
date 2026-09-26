@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AddressRepository extends JpaRepository<Address, Long> {
-
   List<Address> findByUserIdOrderByIsDefaultDescCreatedAtDesc(Long userId);
 
   Optional<Address> findByIdAndUserId(Long id, Long userId);

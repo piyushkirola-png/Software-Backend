@@ -21,18 +21,22 @@ public class DownloadController {
   private final UserRepository userRepository;
 
   @GetMapping
-  public ResponseEntity<ApiResponse<List<DownloadResponse>>> myDownloads(Principal principal) {
+  public ResponseEntity<ApiResponse<List<DownloadResponse>>> myDownloads(
+    Principal principal
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success(
-            "Downloads fetched", downloadService.getMyDownloads(currentUserId(principal))));
+      ApiResponse.success(
+        "Downloads fetched",
+        downloadService.getMyDownloads(currentUserId(principal))
+      )
+    );
   }
 
   private Long currentUserId(Principal principal) {
     if (principal == null) throw new ResourceNotFoundException("Unauthorized");
-    User user =
-        userRepository
-            .findByEmail(principal.getName())
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    User user = userRepository
+      .findByEmail(principal.getName())
+      .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     return user.getId();
   }
 }

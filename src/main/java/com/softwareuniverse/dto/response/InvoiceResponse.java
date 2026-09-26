@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class InvoiceResponse {
+
   private Long id;
   private String invoiceNumber;
   private Long orderId;

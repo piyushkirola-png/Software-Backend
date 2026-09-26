@@ -23,57 +23,84 @@ public class UserAddressController {
   private final UserRepository userRepository;
 
   @GetMapping
-  public ResponseEntity<ApiResponse<List<AddressResponse>>> list(Principal principal) {
+  public ResponseEntity<ApiResponse<List<AddressResponse>>> list(
+    Principal principal
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success(
-            "Addresses fetched", addressService.getMyAddresses(currentUserId(principal))));
+      ApiResponse.success(
+        "Addresses fetched",
+        addressService.getMyAddresses(currentUserId(principal))
+      )
+    );
   }
 
   @GetMapping("/{id}")
   public ResponseEntity<ApiResponse<AddressResponse>> get(
-      Principal principal, @PathVariable Long id) {
+    Principal principal,
+    @PathVariable Long id
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success(
-            "Address fetched", addressService.getAddress(currentUserId(principal), id)));
+      ApiResponse.success(
+        "Address fetched",
+        addressService.getAddress(currentUserId(principal), id)
+      )
+    );
   }
 
   @PostMapping
   public ResponseEntity<ApiResponse<AddressResponse>> create(
-      Principal principal, @Valid @RequestBody AddressRequest request) {
+    Principal principal,
+    @Valid @RequestBody AddressRequest request
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success(
-            "Address created", addressService.createAddress(currentUserId(principal), request)));
+      ApiResponse.success(
+        "Address created",
+        addressService.createAddress(currentUserId(principal), request)
+      )
+    );
   }
 
   @PutMapping("/{id}")
   public ResponseEntity<ApiResponse<AddressResponse>> update(
-      Principal principal, @PathVariable Long id, @Valid @RequestBody AddressRequest request) {
+    Principal principal,
+    @PathVariable Long id,
+    @Valid @RequestBody AddressRequest request
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success(
-            "Address updated",
-            addressService.updateAddress(currentUserId(principal), id, request)));
+      ApiResponse.success(
+        "Address updated",
+        addressService.updateAddress(currentUserId(principal), id, request)
+      )
+    );
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<ApiResponse<Void>> delete(Principal principal, @PathVariable Long id) {
+  public ResponseEntity<ApiResponse<Void>> delete(
+    Principal principal,
+    @PathVariable Long id
+  ) {
     addressService.deleteAddress(currentUserId(principal), id);
     return ResponseEntity.ok(ApiResponse.success("Address deleted", null));
   }
 
   @PostMapping("/{id}/default")
   public ResponseEntity<ApiResponse<AddressResponse>> setDefault(
-      Principal principal, @PathVariable Long id) {
+    Principal principal,
+    @PathVariable Long id
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success(
-            "Default set", addressService.setDefault(currentUserId(principal), id)));
+      ApiResponse.success(
+        "Default set",
+        addressService.setDefault(currentUserId(principal), id)
+      )
+    );
   }
 
   private Long currentUserId(Principal principal) {
     if (principal == null) throw new ResourceNotFoundException("Unauthorized");
-    User user =
-        userRepository
-            .findByEmail(principal.getName())
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    User user = userRepository
+      .findByEmail(principal.getName())
+      .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     return user.getId();
   }
 }

@@ -16,12 +16,14 @@ public class CorsConfig {
 
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    UrlBasedCorsConfigurationSource source =
+      new UrlBasedCorsConfigurationSource();
 
-    // === Payment gateway callbacks ===
     CorsConfiguration gateway = new CorsConfiguration();
     gateway.setAllowedOriginPatterns(List.of("*"));
-    gateway.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+    gateway.setAllowedMethods(
+      List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+    );
     gateway.setAllowedHeaders(List.of("*"));
     gateway.setAllowCredentials(false);
     gateway.setMaxAge(3600L);
@@ -35,8 +37,11 @@ public class CorsConfig {
     // === Everything else ===
     CorsConfiguration strict = new CorsConfiguration();
     strict.setAllowedOriginPatterns(
-        List.of(frontendUrl, "http://localhost:*", "http://127.0.0.1:*"));
-    strict.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+      List.of(frontendUrl, "http://localhost:*", "http://127.0.0.1:*")
+    );
+    strict.setAllowedMethods(
+      List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+    );
     strict.setAllowedHeaders(List.of("*"));
     strict.setAllowCredentials(true);
     strict.setMaxAge(3600L);

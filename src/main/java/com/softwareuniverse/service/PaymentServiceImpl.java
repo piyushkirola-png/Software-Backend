@@ -30,17 +30,19 @@ public class PaymentServiceImpl implements PaymentService {
   private final InvoicePdfService invoicePdfService;
   private final EmailService emailService;
   private final GstCalculatorService gstCalculatorService;
+  private final AdminKeyService adminKeyService;
 
-  // Concrete gateway services (Astrology-style)
   private final CashfreeGatewayService cashfreeGatewayService;
 
   @Override
   @Transactional
-  public PaymentInitiateResponse initiatePayment(Long userId, PaymentRequest request) {
-    Order order =
-        orderRepository
-            .findById(request.getOrderId())
-            .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+  public PaymentInitiateResponse initiatePayment(
+    Long userId,
+    PaymentRequest request
+  ) {
+    Order order = orderRepository
+      .findById(request.getOrderId())
+      .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
     if (!order.getUser().getId().equals(userId)) {
       throw new RuntimeException("Unauthorized");
@@ -51,7 +53,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     // Normalise gateway key
     String gatewayKey =
-        request.getGateway() != null ? request.getGateway().toUpperCase().trim() : "CASHFREE";
+      request.getGateway() != null
+        ? request.getGateway().toUpperCase().trim()
+        : "CASHFREE";
 
     // Create payment record
     Payment payment = new Payment();
@@ -63,56 +67,70 @@ public class PaymentServiceImpl implements PaymentService {
     payment.setStatus(PaymentStatus.PENDING);
 
     // Generate a unique gateway order id (used by most gateways)
-    String gatewayOrderId = "SU-" + order.getOrderNumber() + "-" + System.currentTimeMillis();
+    String gatewayOrderId =
+      "SU-" + order.getOrderNumber() + "-" + System.currentTimeMillis();
     payment.setGatewayOrderId(gatewayOrderId);
 
     paymentRepository.save(payment);
 
     // Dispatch to the concrete gateway
-    boolean ok =
-        switch (gatewayKey) {
-          case "CASHFREE" -> cashfreeGatewayService.initiate(payment, order.getUser());
-          default -> throw new RuntimeException("Unsupported gateway: " + gatewayKey);
-        };
+    boolean ok = switch (gatewayKey) {
+      case "CASHFREE" -> cashfreeGatewayService.initiate(
+        payment,
+        order.getUser()
+      );
+      default -> throw new RuntimeException(
+        "Unsupported gateway: " + gatewayKey
+      );
+    };
 
-    if (!ok || payment.getPaymentLink() == null || payment.getPaymentLink().isBlank()) {
+    if (
+      !ok ||
+      payment.getPaymentLink() == null ||
+      payment.getPaymentLink().isBlank()
+    ) {
       payment.setStatus(PaymentStatus.FAILED);
       payment.setFailureReason("Unable to create payment link");
       paymentRepository.save(payment);
-      throw new RuntimeException("Unable to create payment link. Please try again.");
+      throw new RuntimeException(
+        "Unable to create payment link. Please try again."
+      );
     }
 
     // Save the link that the gateway service wrote
     paymentRepository.save(payment);
 
     log.info(
-        "Payment initiated: order={}, gateway={}, paymentId={}, link={}",
-        order.getOrderNumber(),
-        gatewayKey,
-        payment.getId(),
-        payment.getPaymentLink());
+      "Payment initiated: order={}, gateway={}, paymentId={}, link={}",
+      order.getOrderNumber(),
+      gatewayKey,
+      payment.getId(),
+      payment.getPaymentLink()
+    );
 
     // Build response for frontend
     return PaymentInitiateResponse.builder()
-        .paymentId(payment.getId())
-        .gateway(payment.getGateway())
-        .gatewayOrderId(payment.getGatewayOrderId())
-        .amount(payment.getAmount())
-        .currency(payment.getCurrency())
-        .status(payment.getStatus().name())
-        .gatewayData(
-            java.util.Map.of(
-                "paymentLink", payment.getPaymentLink() != null ? payment.getPaymentLink() : ""))
-        .build();
+      .paymentId(payment.getId())
+      .gateway(payment.getGateway())
+      .gatewayOrderId(payment.getGatewayOrderId())
+      .amount(payment.getAmount())
+      .currency(payment.getCurrency())
+      .status(payment.getStatus().name())
+      .gatewayData(
+        java.util.Map.of(
+          "paymentLink",
+          payment.getPaymentLink() != null ? payment.getPaymentLink() : ""
+        )
+      )
+      .build();
   }
 
   @Override
   @Transactional(readOnly = true)
   public PaymentResponse getPaymentById(Long userId, Long paymentId) {
-    Payment payment =
-        paymentRepository
-            .findById(paymentId)
-            .orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
+    Payment payment = paymentRepository
+      .findById(paymentId)
+      .orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
     if (!payment.getUser().getId().equals(userId)) {
       throw new RuntimeException("Unauthorized");
     }
@@ -122,20 +140,26 @@ public class PaymentServiceImpl implements PaymentService {
   @Override
   @Transactional(readOnly = true)
   public List<PaymentResponse> getPaymentsForOrder(Long userId, Long orderId) {
-    return paymentRepository.findByOrderId(orderId).stream()
-        .filter(p -> p.getUser().getId().equals(userId))
-        .map(this::toResponse)
-        .toList();
+    return paymentRepository
+      .findByOrderId(orderId)
+      .stream()
+      .filter(p -> p.getUser().getId().equals(userId))
+      .map(this::toResponse)
+      .toList();
   }
 
   @Override
   @Transactional
-  public void markSuccess(String gatewayPaymentId, String gatewayOrderId, String rawResponse) {
-    Payment payment =
-        paymentRepository
-            .findByGatewayOrderId(gatewayOrderId)
-            .orElseThrow(
-                () -> new ResourceNotFoundException("Payment not found for gateway order"));
+  public void markSuccess(
+    String gatewayPaymentId,
+    String gatewayOrderId,
+    String rawResponse
+  ) {
+    Payment payment = paymentRepository
+      .findByGatewayOrderId(gatewayOrderId)
+      .orElseThrow(() ->
+        new ResourceNotFoundException("Payment not found for gateway order")
+      );
 
     if (payment.getStatus() == PaymentStatus.SUCCESS) {
       log.info("Payment already marked SUCCESS — skipping");
@@ -158,9 +182,24 @@ public class PaymentServiceImpl implements PaymentService {
     }
     licenseKeyRepository.saveAll(keys);
 
+    for (LicenseKey key : keys) {
+      try {
+        adminKeyService.syncStock(
+          key.getProduct().getId(),
+          key.getVariant() != null ? key.getVariant().getId() : null
+        );
+      } catch (Exception e) {
+        log.warn("syncStock failed on success: {}", e.getMessage());
+      }
+    }
+
     if (order.getCouponCode() != null && !order.getCouponCode().isBlank()) {
       try {
-        couponService.recordUsage(order.getCouponCode(), order.getUser().getId(), order.getId());
+        couponService.recordUsage(
+          order.getCouponCode(),
+          order.getUser().getId(),
+          order.getId()
+        );
       } catch (Exception e) {
         log.warn("Failed to record coupon usage: {}", e.getMessage());
       }
@@ -171,26 +210,38 @@ public class PaymentServiceImpl implements PaymentService {
       invoice = generateInvoice(order);
     } catch (Exception e) {
       log.error(
-          "Invoice generation failed for order {}: {}", order.getOrderNumber(), e.getMessage(), e);
+        "Invoice generation failed for order {}: {}",
+        order.getOrderNumber(),
+        e.getMessage(),
+        e
+      );
     }
 
     try {
       emailService.sendOrderConfirmation(order, keys, invoice);
     } catch (Exception e) {
-      log.error("Failed to send order confirmation email: {}", e.getMessage(), e);
+      log.error(
+        "Failed to send order confirmation email: {}",
+        e.getMessage(),
+        e
+      );
     }
 
-    log.info("Payment SUCCESS: order={}, payment={}", order.getOrderNumber(), payment.getId());
+    log.info(
+      "Payment SUCCESS: order={}, payment={}",
+      order.getOrderNumber(),
+      payment.getId()
+    );
   }
 
   @Override
   @Transactional
   public void markFailed(String gatewayOrderId, String reason) {
-    Payment payment =
-        paymentRepository
-            .findByGatewayOrderId(gatewayOrderId)
-            .orElseThrow(
-                () -> new ResourceNotFoundException("Payment not found for gateway order"));
+    Payment payment = paymentRepository
+      .findByGatewayOrderId(gatewayOrderId)
+      .orElseThrow(() ->
+        new ResourceNotFoundException("Payment not found for gateway order")
+      );
 
     if (payment.getStatus() == PaymentStatus.FAILED) return;
 
@@ -209,26 +260,41 @@ public class PaymentServiceImpl implements PaymentService {
       key.setReservedAt(null);
     }
     licenseKeyRepository.saveAll(keys);
+    
+    for (LicenseKey key : keys) {
+      try {
+        adminKeyService.syncStock(
+          key.getProduct().getId(),
+          key.getVariant() != null ? key.getVariant().getId() : null
+        );
+      } catch (Exception e) {
+        log.warn("syncStock failed on failure: {}", e.getMessage());
+      }
+    }
 
-    log.info("Payment FAILED: order={}, reason={}", order.getOrderNumber(), reason);
+    log.info(
+      "Payment FAILED: order={}, reason={}",
+      order.getOrderNumber(),
+      reason
+    );
   }
 
   @Override
   @Transactional
   public PaymentResponse simulateSuccess(Long userId, Long paymentId) {
-    Payment payment =
-        paymentRepository
-            .findById(paymentId)
-            .orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
+    Payment payment = paymentRepository
+      .findById(paymentId)
+      .orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
 
     if (!payment.getUser().getId().equals(userId)) {
       throw new RuntimeException("Unauthorized");
     }
 
     markSuccess(
-        "SIMULATED_" + System.currentTimeMillis(),
-        payment.getGatewayOrderId(),
-        "{\"simulated\":true}");
+      "SIMULATED_" + System.currentTimeMillis(),
+      payment.getGatewayOrderId(),
+      "{\"simulated\":true}"
+    );
 
     return toResponse(paymentRepository.findById(paymentId).orElseThrow());
   }
@@ -241,14 +307,17 @@ public class PaymentServiceImpl implements PaymentService {
     invoice.setSubtotal(order.getSubtotal());
     invoice.setDiscount(order.getDiscount());
 
-    String buyerState = order.getAddress() != null ? order.getAddress().getState() : null;
+    String buyerState =
+      order.getAddress() != null ? order.getAddress().getState() : null;
 
-    GstBreakdown gst =
-        gstCalculatorService.calculate(
-            order
-                .getSubtotal()
-                .subtract(order.getDiscount() != null ? order.getDiscount() : BigDecimal.ZERO),
-            buyerState);
+    GstBreakdown gst = gstCalculatorService.calculate(
+      order
+        .getSubtotal()
+        .subtract(
+          order.getDiscount() != null ? order.getDiscount() : BigDecimal.ZERO
+        ),
+      buyerState
+    );
 
     invoice.setCgst(gst.getCgst());
     invoice.setSgst(gst.getSgst());
@@ -262,14 +331,14 @@ public class PaymentServiceImpl implements PaymentService {
     if (order.getAddress() != null) {
       var a = order.getAddress();
       String addr =
-          (a.getAddressLine1() != null ? a.getAddressLine1() : "")
-              + (a.getAddressLine2() != null ? ", " + a.getAddressLine2() : "")
-              + ", "
-              + a.getCity()
-              + ", "
-              + a.getState()
-              + " - "
-              + a.getPincode();
+        (a.getAddressLine1() != null ? a.getAddressLine1() : "") +
+        (a.getAddressLine2() != null ? ", " + a.getAddressLine2() : "") +
+        ", " +
+        a.getCity() +
+        ", " +
+        a.getState() +
+        " - " +
+        a.getPincode();
       invoice.setBuyerAddress(addr);
       invoice.setBuyerState(a.getState());
     }
@@ -281,27 +350,30 @@ public class PaymentServiceImpl implements PaymentService {
     invoiceRepository.save(invoice);
 
     log.info(
-        "Invoice {} generated for order {}", invoice.getInvoiceNumber(), order.getOrderNumber());
+      "Invoice {} generated for order {}",
+      invoice.getInvoiceNumber(),
+      order.getOrderNumber()
+    );
 
     return invoice;
   }
 
   private PaymentResponse toResponse(Payment p) {
     return PaymentResponse.builder()
-        .id(p.getId())
-        .orderId(p.getOrder().getId())
-        .orderNumber(p.getOrder().getOrderNumber())
-        .gateway(p.getGateway())
-        .gatewayOrderId(p.getGatewayOrderId())
-        .gatewayPaymentId(p.getGatewayPaymentId())
-        .paymentLink(p.getPaymentLink())
-        .amount(p.getAmount())
-        .currency(p.getCurrency())
-        .status(p.getStatus().name())
-        .failureReason(p.getFailureReason())
-        .rawResponse(p.getRawResponse())
-        .createdAt(p.getCreatedAt())
-        .updatedAt(p.getUpdatedAt())
-        .build();
+      .id(p.getId())
+      .orderId(p.getOrder().getId())
+      .orderNumber(p.getOrder().getOrderNumber())
+      .gateway(p.getGateway())
+      .gatewayOrderId(p.getGatewayOrderId())
+      .gatewayPaymentId(p.getGatewayPaymentId())
+      .paymentLink(p.getPaymentLink())
+      .amount(p.getAmount())
+      .currency(p.getCurrency())
+      .status(p.getStatus().name())
+      .failureReason(p.getFailureReason())
+      .rawResponse(p.getRawResponse())
+      .createdAt(p.getCreatedAt())
+      .updatedAt(p.getUpdatedAt())
+      .build();
   }
 }

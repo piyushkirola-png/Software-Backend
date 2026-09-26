@@ -1,6 +1,7 @@
 package com.softwareuniverse.controller;
 
 import com.softwareuniverse.common.response.ApiResponse;
+import com.softwareuniverse.dto.request.KeyUpdateRequest;
 import com.softwareuniverse.dto.request.KeyUploadRequest;
 import com.softwareuniverse.dto.response.KeyBatchUploadResponse;
 import com.softwareuniverse.dto.response.KeyResponse;
@@ -27,45 +28,78 @@ public class AdminKeyController {
 
   @PostMapping
   public ResponseEntity<ApiResponse<KeyResponse>> addKey(
-      @Valid @RequestBody KeyUploadRequest request) {
-    return ResponseEntity.ok(ApiResponse.success("Key added", adminKeyService.addKey(request)));
+    @Valid @RequestBody KeyUploadRequest request
+  ) {
+    return ResponseEntity.ok(
+      ApiResponse.success("Key added", adminKeyService.addKey(request))
+    );
+  }
+
+  @PutMapping("/{id}")
+  public ResponseEntity<ApiResponse<KeyResponse>> updateKey(
+    @PathVariable Long id,
+    @RequestBody KeyUpdateRequest request
+  ) {
+    return ResponseEntity.ok(
+      ApiResponse.success("Key updated", adminKeyService.updateKey(id, request))
+    );
   }
 
   @PostMapping("/bulk-upload")
   public ResponseEntity<ApiResponse<KeyBatchUploadResponse>> bulkUpload(
-      @RequestParam("file") MultipartFile file,
-      @RequestParam Long productId,
-      @RequestParam(required = false) Long variantId,
-      @RequestParam(required = false) String batchName) {
+    @RequestParam("file") MultipartFile file,
+    @RequestParam Long productId,
+    @RequestParam(required = false) Long variantId,
+    @RequestParam(required = false) String batchName
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success(
-            "Bulk upload complete",
-            adminKeyService.bulkUploadCsv(file, productId, variantId, batchName)));
+      ApiResponse.success(
+        "Bulk upload complete",
+        adminKeyService.bulkUploadCsv(file, productId, variantId, batchName)
+      )
+    );
   }
 
   @GetMapping
   public ResponseEntity<ApiResponse<Page<KeyResponse>>> getAll(
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "50") int size,
-      @RequestParam(required = false) String status,
-      @RequestParam(required = false) Long productId,
-      @RequestParam(required = false) Long variantId,
-      @RequestParam(required = false) String search) {
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "50") int size,
+    @RequestParam(required = false) String status,
+    @RequestParam(required = false) Long productId,
+    @RequestParam(required = false) Long variantId,
+    @RequestParam(required = false) String search,
+    @RequestParam(required = false) String productSearch
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success(
-            "Keys fetched",
-            adminKeyService.getAllKeys(page, size, status, productId, variantId, search)));
+      ApiResponse.success(
+        "Keys fetched",
+        adminKeyService.getAllKeys(
+          page,
+          size,
+          status,
+          productId,
+          variantId,
+          search,
+          productSearch
+        )
+      )
+    );
   }
 
   @GetMapping("/stock-summary")
   public ResponseEntity<ApiResponse<List<KeyStockResponse>>> stockSummary() {
     return ResponseEntity.ok(
-        ApiResponse.success("Stock summary", adminKeyService.getStockSummary()));
+      ApiResponse.success("Stock summary", adminKeyService.getStockSummary())
+    );
   }
 
   @PostMapping("/{id}/revoke")
-  public ResponseEntity<ApiResponse<KeyResponse>> revoke(@PathVariable Long id) {
-    return ResponseEntity.ok(ApiResponse.success("Key revoked", adminKeyService.revokeKey(id)));
+  public ResponseEntity<ApiResponse<KeyResponse>> revoke(
+    @PathVariable Long id
+  ) {
+    return ResponseEntity.ok(
+      ApiResponse.success("Key revoked", adminKeyService.revokeKey(id))
+    );
   }
 
   @DeleteMapping("/{id}")
@@ -76,11 +110,13 @@ public class AdminKeyController {
 
   @GetMapping("/export-csv")
   public ResponseEntity<byte[]> exportCsv(
-      @RequestParam Long productId, @RequestParam(required = false) Long variantId) {
+    @RequestParam Long productId,
+    @RequestParam(required = false) Long variantId
+  ) {
     byte[] data = adminKeyService.exportAvailableKeysCsv(productId, variantId);
     return ResponseEntity.ok()
-        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=keys.csv")
-        .contentType(MediaType.parseMediaType("text/csv"))
-        .body(data);
+      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=keys.csv")
+      .contentType(MediaType.parseMediaType("text/csv"))
+      .body(data);
   }
 }

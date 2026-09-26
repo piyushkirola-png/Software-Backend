@@ -15,53 +15,108 @@ import org.springframework.web.multipart.MultipartException;
 public class GlobalExceptionHandler {
 
   @ExceptionHandler(BadCredentialsException.class)
-  public ResponseEntity<ApiResponse<Void>> handleBadCredentials(BadCredentialsException ex) {
-    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-        .body(ApiResponse.error("Invalid email or password"));
+  public ResponseEntity<ApiResponse<Void>> handleBadCredentials(
+    BadCredentialsException ex
+  ) {
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+      ApiResponse.error("Invalid email or password")
+    );
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException ex) {
-    String errors =
-        ex.getBindingResult().getFieldErrors().stream()
-            .map(error -> error.getField() + ": " + error.getDefaultMessage())
-            .collect(Collectors.joining(", "));
+  public ResponseEntity<ApiResponse<Void>> handleValidation(
+    MethodArgumentNotValidException ex
+  ) {
+    String errors = ex
+      .getBindingResult()
+      .getFieldErrors()
+      .stream()
+      .map(error -> error.getField() + ": " + error.getDefaultMessage())
+      .collect(Collectors.joining(", "));
 
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(errors));
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+      ApiResponse.error(errors)
+    );
   }
 
   @ExceptionHandler(ResourceNotFoundException.class)
-  public ResponseEntity<ApiResponse<Void>> handleNotFound(ResourceNotFoundException ex) {
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(ex.getMessage()));
+  public ResponseEntity<ApiResponse<Void>> handleNotFound(
+    ResourceNotFoundException ex
+  ) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+      ApiResponse.error(ex.getMessage())
+    );
   }
 
   @ExceptionHandler(PaymentRequiredException.class)
-  public ResponseEntity<ApiResponse<Void>> handlePaymentRequired(PaymentRequiredException ex) {
-    return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED)
-        .body(ApiResponse.error(ex.getMessage()));
+  public ResponseEntity<ApiResponse<Void>> handlePaymentRequired(
+    PaymentRequiredException ex
+  ) {
+    return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).body(
+      ApiResponse.error(ex.getMessage())
+    );
   }
 
   @ExceptionHandler(MaxUploadSizeExceededException.class)
-  public ResponseEntity<ApiResponse<Void>> handleMaxSize(MaxUploadSizeExceededException ex) {
-    return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
-        .body(ApiResponse.error("File too large. Maximum size is 5MB."));
+  public ResponseEntity<ApiResponse<Void>> handleMaxSize(
+    MaxUploadSizeExceededException ex
+  ) {
+    return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(
+      ApiResponse.error("File too large. Maximum size is 5MB.")
+    );
   }
 
   @ExceptionHandler(MultipartException.class)
-  public ResponseEntity<ApiResponse<Void>> handleMultipart(MultipartException ex) {
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-        .body(ApiResponse.error("Invalid file upload. " + ex.getMessage()));
+  public ResponseEntity<ApiResponse<Void>> handleMultipart(
+    MultipartException ex
+  ) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+      ApiResponse.error("Invalid file upload. " + ex.getMessage())
+    );
+  }
+
+  @ExceptionHandler(
+    org.springframework.dao.DataIntegrityViolationException.class
+  )
+  public ResponseEntity<ApiResponse<Void>> handleDataIntegrity(
+    org.springframework.dao.DataIntegrityViolationException ex
+  ) {
+    String rawMsg =
+      ex.getMostSpecificCause() != null
+        ? ex.getMostSpecificCause().getMessage()
+        : null;
+    String friendly = "Invalid data. Please check your input.";
+
+    if (rawMsg != null) {
+      String lower = rawMsg.toLowerCase();
+      if (lower.contains("license_key")) {
+        friendly = "This license key already exists.";
+      } else if (lower.contains("email")) {
+        friendly = "This email is already registered.";
+      } else if (lower.contains("slug")) {
+        friendly = "This slug is already in use.";
+      } else if (lower.contains("duplicate entry")) {
+        friendly = "This value already exists.";
+      }
+    }
+
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(
+      ApiResponse.error(friendly)
+    );
   }
 
   @ExceptionHandler(RuntimeException.class)
   public ResponseEntity<ApiResponse<Void>> handleRuntime(RuntimeException ex) {
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(ex.getMessage()));
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+      ApiResponse.error(ex.getMessage())
+    );
   }
 
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ApiResponse<Void>> handleAll(Exception ex) {
     ex.printStackTrace();
-    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .body(ApiResponse.error("Something went wrong"));
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+      ApiResponse.error("Something went wrong")
+    );
   }
 }

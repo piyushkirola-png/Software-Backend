@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SalesReportResponse {
+
   private LocalDate fromDate;
   private LocalDate toDate;
   private long totalOrders;
@@ -26,6 +27,7 @@ public class SalesReportResponse {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class DailySales {
+
     private LocalDate date;
     private long orders;
     private BigDecimal revenue;

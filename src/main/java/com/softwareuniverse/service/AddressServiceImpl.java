@@ -22,28 +22,28 @@ public class AddressServiceImpl implements AddressService {
   @Override
   @Transactional(readOnly = true)
   public List<AddressResponse> getMyAddresses(Long userId) {
-    return addressRepository.findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId).stream()
-        .map(this::toResponse)
-        .toList();
+    return addressRepository
+      .findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId)
+      .stream()
+      .map(this::toResponse)
+      .toList();
   }
 
   @Override
   @Transactional(readOnly = true)
   public AddressResponse getAddress(Long userId, Long addressId) {
-    Address a =
-        addressRepository
-            .findByIdAndUserId(addressId, userId)
-            .orElseThrow(() -> new ResourceNotFoundException("Address not found"));
+    Address a = addressRepository
+      .findByIdAndUserId(addressId, userId)
+      .orElseThrow(() -> new ResourceNotFoundException("Address not found"));
     return toResponse(a);
   }
 
   @Override
   @Transactional
   public AddressResponse createAddress(Long userId, AddressRequest request) {
-    User user =
-        userRepository
-            .findById(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    User user = userRepository
+      .findById(userId)
+      .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
     Address address = new Address();
     address.setUser(user);
@@ -51,8 +51,10 @@ public class AddressServiceImpl implements AddressService {
 
     // If this is the user's first address OR they set it as default → unset others
     boolean setDefault =
-        Boolean.TRUE.equals(request.getIsDefault())
-            || addressRepository.findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId).isEmpty();
+      Boolean.TRUE.equals(request.getIsDefault()) ||
+      addressRepository
+        .findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId)
+        .isEmpty();
 
     if (setDefault) {
       unsetDefaults(userId);
@@ -65,11 +67,14 @@ public class AddressServiceImpl implements AddressService {
 
   @Override
   @Transactional
-  public AddressResponse updateAddress(Long userId, Long addressId, AddressRequest request) {
-    Address address =
-        addressRepository
-            .findByIdAndUserId(addressId, userId)
-            .orElseThrow(() -> new ResourceNotFoundException("Address not found"));
+  public AddressResponse updateAddress(
+    Long userId,
+    Long addressId,
+    AddressRequest request
+  ) {
+    Address address = addressRepository
+      .findByIdAndUserId(addressId, userId)
+      .orElseThrow(() -> new ResourceNotFoundException("Address not found"));
 
     applyRequest(address, request);
 
@@ -85,20 +90,18 @@ public class AddressServiceImpl implements AddressService {
   @Override
   @Transactional
   public void deleteAddress(Long userId, Long addressId) {
-    Address address =
-        addressRepository
-            .findByIdAndUserId(addressId, userId)
-            .orElseThrow(() -> new ResourceNotFoundException("Address not found"));
+    Address address = addressRepository
+      .findByIdAndUserId(addressId, userId)
+      .orElseThrow(() -> new ResourceNotFoundException("Address not found"));
     addressRepository.delete(address);
   }
 
   @Override
   @Transactional
   public AddressResponse setDefault(Long userId, Long addressId) {
-    Address address =
-        addressRepository
-            .findByIdAndUserId(addressId, userId)
-            .orElseThrow(() -> new ResourceNotFoundException("Address not found"));
+    Address address = addressRepository
+      .findByIdAndUserId(addressId, userId)
+      .orElseThrow(() -> new ResourceNotFoundException("Address not found"));
 
     unsetDefaults(userId);
     address.setIsDefault(true);
@@ -110,7 +113,7 @@ public class AddressServiceImpl implements AddressService {
 
   private void unsetDefaults(Long userId) {
     List<Address> existing =
-        addressRepository.findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId);
+      addressRepository.findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId);
     for (Address a : existing) {
       if (Boolean.TRUE.equals(a.getIsDefault())) {
         a.setIsDefault(false);
@@ -133,18 +136,18 @@ public class AddressServiceImpl implements AddressService {
 
   private AddressResponse toResponse(Address a) {
     return AddressResponse.builder()
-        .id(a.getId())
-        .fullName(a.getFullName())
-        .phone(a.getPhone())
-        .addressLine1(a.getAddressLine1())
-        .addressLine2(a.getAddressLine2())
-        .city(a.getCity())
-        .state(a.getState())
-        .pincode(a.getPincode())
-        .country(a.getCountry())
-        .isDefault(a.getIsDefault())
-        .gstNumber(a.getGstNumber())
-        .createdAt(a.getCreatedAt())
-        .build();
+      .id(a.getId())
+      .fullName(a.getFullName())
+      .phone(a.getPhone())
+      .addressLine1(a.getAddressLine1())
+      .addressLine2(a.getAddressLine2())
+      .city(a.getCity())
+      .state(a.getState())
+      .pincode(a.getPincode())
+      .country(a.getCountry())
+      .isDefault(a.getIsDefault())
+      .gstNumber(a.getGstNumber())
+      .createdAt(a.getCreatedAt())
+      .build();
   }
 }

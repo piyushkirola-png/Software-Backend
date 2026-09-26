@@ -28,19 +28,23 @@ public class CouponController {
    */
   @PostMapping("/validate")
   public ResponseEntity<ApiResponse<CouponResponse>> validate(
-      Principal principal,
-      @Valid @RequestBody ApplyCouponRequest request,
-      @RequestParam BigDecimal subtotal) {
+    Principal principal,
+    @Valid @RequestBody ApplyCouponRequest request,
+    @RequestParam BigDecimal subtotal
+  ) {
     Long userId = principal != null ? currentUserId(principal) : null;
-    CouponResponse coupon = couponService.validateCoupon(request.getCode(), subtotal, userId);
+    CouponResponse coupon = couponService.validateCoupon(
+      request.getCode(),
+      subtotal,
+      userId
+    );
     return ResponseEntity.ok(ApiResponse.success("Coupon valid", coupon));
   }
 
   private Long currentUserId(Principal principal) {
-    User user =
-        userRepository
-            .findByEmail(principal.getName())
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    User user = userRepository
+      .findByEmail(principal.getName())
+      .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     return user.getId();
   }
 }

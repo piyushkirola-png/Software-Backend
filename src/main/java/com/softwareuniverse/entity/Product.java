@@ -50,13 +50,13 @@ public class Product {
   private String thumbnailUrl;
 
   @Column(name = "download_file_path", length = 500)
-  private String downloadFilePath; // e.g. /software/windows/windows11pro.zip
+  private String downloadFilePath;
 
   @Column(name = "license_type", length = 50)
-  private String licenseType; // e.g. "Lifetime", "1 Year", "Perpetual"
+  private String licenseType;
 
   @Column(name = "activation_type", length = 50)
-  private String activationType; // e.g. "Online", "Phone"
+  private String activationType;
 
   @Column(name = "has_variants", nullable = false)
   private Boolean hasVariants = false;

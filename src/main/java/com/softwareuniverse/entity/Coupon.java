@@ -40,7 +40,7 @@ public class Coupon {
   private BigDecimal maxDiscount;
 
   @Column(name = "usage_limit")
-  private Integer usageLimit; // null = unlimited
+  private Integer usageLimit;
 
   @Column(name = "used_count")
   private Integer usedCount = 0;

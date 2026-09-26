@@ -19,49 +19,82 @@ public class ProductController {
   @GetMapping("/featured")
   public ResponseEntity<ApiResponse<List<ProductResponse>>> getFeatured() {
     return ResponseEntity.ok(
-        ApiResponse.success("Featured products fetched", productService.getFeaturedProducts()));
+      ApiResponse.success(
+        "Featured products fetched",
+        productService.getFeaturedProducts()
+      )
+    );
   }
 
   @GetMapping
   public ResponseEntity<ApiResponse<Page<ProductResponse>>> getAll(
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "12") int size,
-      @RequestParam(required = false) String sortBy,
-      @RequestParam(required = false) java.math.BigDecimal minPrice,
-      @RequestParam(required = false) java.math.BigDecimal maxPrice) {
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "12") int size,
+    @RequestParam(required = false) String sortBy,
+    @RequestParam(required = false) java.math.BigDecimal minPrice,
+    @RequestParam(required = false) java.math.BigDecimal maxPrice
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success(
-            "Products fetched",
-            productService.getAllActiveProducts(page, size, sortBy, minPrice, maxPrice)));
+      ApiResponse.success(
+        "Products fetched",
+        productService.getAllActiveProducts(
+          page,
+          size,
+          sortBy,
+          minPrice,
+          maxPrice
+        )
+      )
+    );
   }
 
   @GetMapping("/category/{slug}")
   public ResponseEntity<ApiResponse<Page<ProductResponse>>> getByCategory(
-      @PathVariable String slug,
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "12") int size,
-      @RequestParam(required = false) String sortBy,
-      @RequestParam(required = false) java.math.BigDecimal minPrice,
-      @RequestParam(required = false) java.math.BigDecimal maxPrice) {
+    @PathVariable String slug,
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "12") int size,
+    @RequestParam(required = false) String sortBy,
+    @RequestParam(required = false) java.math.BigDecimal minPrice,
+    @RequestParam(required = false) java.math.BigDecimal maxPrice
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success(
-            "Products fetched",
-            productService.getProductsByCategorySlug(
-                slug, page, size, sortBy, minPrice, maxPrice)));
+      ApiResponse.success(
+        "Products fetched",
+        productService.getProductsByCategorySlug(
+          slug,
+          page,
+          size,
+          sortBy,
+          minPrice,
+          maxPrice
+        )
+      )
+    );
   }
 
   @GetMapping("/search")
   public ResponseEntity<ApiResponse<Page<ProductResponse>>> search(
-      @RequestParam String q,
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "12") int size) {
+    @RequestParam String q,
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "12") int size
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success("Search results", productService.searchProducts(q, page, size)));
+      ApiResponse.success(
+        "Search results",
+        productService.searchProducts(q, page, size)
+      )
+    );
   }
 
   @GetMapping("/{slug}")
-  public ResponseEntity<ApiResponse<ProductResponse>> getBySlug(@PathVariable String slug) {
+  public ResponseEntity<ApiResponse<ProductResponse>> getBySlug(
+    @PathVariable String slug
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success("Product fetched", productService.getProductBySlug(slug)));
+      ApiResponse.success(
+        "Product fetched",
+        productService.getProductBySlug(slug)
+      )
+    );
   }
 }

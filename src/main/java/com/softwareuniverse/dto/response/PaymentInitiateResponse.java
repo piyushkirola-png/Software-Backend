@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PaymentInitiateResponse {
+
   private Long paymentId;
   private String gateway;
   private String gatewayOrderId;

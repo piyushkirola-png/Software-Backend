@@ -19,7 +19,9 @@ public class InvoiceNumberServiceImpl implements InvoiceNumberService {
     LocalDate today = LocalDate.now();
     // Indian FY: April 1 – March 31
     int fyStartYear =
-        today.getMonthValue() >= Month.APRIL.getValue() ? today.getYear() : today.getYear() - 1;
+      today.getMonthValue() >= Month.APRIL.getValue()
+        ? today.getYear()
+        : today.getYear() - 1;
     int fyEndYear = fyStartYear + 1;
     String fyCode = String.format("%d-%02d", fyStartYear, fyEndYear % 100); // e.g. 2026-27
 

@@ -18,18 +18,26 @@ public class CashfreeWebhookHandler implements WebhookHandler {
   @Override
   @SuppressWarnings("unchecked")
   public WebhookResult process(
-      String rawBody, Map<String, Object> payload, Map<String, String> headers) {
+    String rawBody,
+    Map<String, Object> payload,
+    Map<String, String> headers
+  ) {
     WebhookResult result = new WebhookResult();
 
     try {
-      String eventType = firstNonNull(payload.get("type"), payload.get("event"));
+      String eventType = firstNonNull(
+        payload.get("type"),
+        payload.get("event")
+      );
       result.setEventType(eventType);
       log.info("[Cashfree Webhook] Event: {}", eventType);
 
-      if (eventType != null
-          && (eventType.startsWith("CHARGEBACK")
-              || eventType.startsWith("REFUND")
-              || eventType.equals("PAYMENT_LINK_EVENT"))) {
+      if (
+        eventType != null &&
+        (eventType.startsWith("CHARGEBACK") ||
+          eventType.startsWith("REFUND") ||
+          eventType.equals("PAYMENT_LINK_EVENT"))
+      ) {
         result.setStatus("IGNORED");
         return result;
       }
@@ -50,12 +58,13 @@ public class CashfreeWebhookHandler implements WebhookHandler {
 
       // Determine success / fail
       boolean isSuccess =
-          "PAYMENT_SUCCESS_WEBHOOK".equals(eventType)
-              || "ORDER_PAID".equals(eventType)
-              || "SUCCESS".equalsIgnoreCase(paymentStatus);
+        "PAYMENT_SUCCESS_WEBHOOK".equals(eventType) ||
+        "ORDER_PAID".equals(eventType) ||
+        "SUCCESS".equalsIgnoreCase(paymentStatus);
 
       boolean isFailed =
-          "PAYMENT_FAILED_WEBHOOK".equals(eventType) || "FAILED".equalsIgnoreCase(paymentStatus);
+        "PAYMENT_FAILED_WEBHOOK".equals(eventType) ||
+        "FAILED".equalsIgnoreCase(paymentStatus);
 
       if (!isSuccess && !isFailed) {
         result.setStatus("IGNORED");
@@ -66,7 +75,9 @@ public class CashfreeWebhookHandler implements WebhookHandler {
       String orderId = null;
 
       if (order != null && order.get("order_tags") instanceof Map) {
-        Map<String, Object> tags = (Map<String, Object>) order.get("order_tags");
+        Map<String, Object> tags = (Map<String, Object>) order.get(
+          "order_tags"
+        );
         Object linkId = tags.get("link_id");
         if (linkId != null && !linkId.toString().isBlank()) {
           orderId = linkId.toString();
@@ -76,7 +87,9 @@ public class CashfreeWebhookHandler implements WebhookHandler {
 
       if (orderId == null && order != null && order.get("order_id") != null) {
         orderId = order.get("order_id").toString();
-      } else if (orderId == null && payment != null && payment.get("order_id") != null) {
+      } else if (
+        orderId == null && payment != null && payment.get("order_id") != null
+      ) {
         orderId = payment.get("order_id").toString();
       } else if (orderId == null && payload.get("order_id") != null) {
         orderId = payload.get("order_id").toString();
@@ -86,7 +99,10 @@ public class CashfreeWebhookHandler implements WebhookHandler {
       // Payment ID
       String paymentId = null;
       if (payment != null) {
-        paymentId = firstNonNull(payment.get("cf_payment_id"), payment.get("payment_id"));
+        paymentId = firstNonNull(
+          payment.get("cf_payment_id"),
+          payment.get("payment_id")
+        );
       }
       result.setPaymentId(paymentId);
 
@@ -109,12 +125,13 @@ public class CashfreeWebhookHandler implements WebhookHandler {
       result.setStatus(isSuccess ? "SUCCESS" : "FAILED");
 
       log.info(
-          "[Cashfree Webhook] Parsed: order={}, payment={}, amount={}, utr={}, status={}",
-          orderId,
-          paymentId,
-          amount,
-          utr,
-          result.getStatus());
+        "[Cashfree Webhook] Parsed: order={}, payment={}, amount={}, utr={}, status={}",
+        orderId,
+        paymentId,
+        amount,
+        utr,
+        result.getStatus()
+      );
 
       return result;
     } catch (Exception e) {

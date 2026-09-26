@@ -42,40 +42,53 @@ public class SecurityConfig {
     "/api/payments/sabpaisa/**",
     "/uploads/**",
     "/software/**",
+    "/api/keys/**",
     "/assets/**",
     "/swagger-ui/**",
     "/v3/api-docs/**",
   };
 
   @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http.csrf(AbstractHttpConfigurer::disable)
-        .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource()))
-        .sessionManagement(
-            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .authorizeHttpRequests(
-            auth ->
-                auth.requestMatchers(PUBLIC_URLS)
-                    .permitAll()
-                    .requestMatchers("/api/admin/**")
-                    .hasRole("ADMIN")
-                    .anyRequest()
-                    .authenticated())
-        .exceptionHandling(
-            ex ->
-                ex.authenticationEntryPoint(
-                        (req, res, e) -> {
-                          res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                          res.setContentType("application/json");
-                          res.getWriter().write("{\"success\":false,\"message\":\"Unauthorized\"}");
-                        })
-                    .accessDeniedHandler(
-                        (req, res, e) -> {
-                          res.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                          res.setContentType("application/json");
-                          res.getWriter().write("{\"success\":false,\"message\":\"Forbidden\"}");
-                        }))
-        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+  public SecurityFilterChain securityFilterChain(HttpSecurity http)
+    throws Exception {
+    http
+      .csrf(AbstractHttpConfigurer::disable)
+      .cors(cors ->
+        cors.configurationSource(corsConfig.corsConfigurationSource())
+      )
+      .sessionManagement(session ->
+        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+      )
+      .authorizeHttpRequests(auth ->
+        auth
+          .requestMatchers(PUBLIC_URLS)
+          .permitAll()
+          .requestMatchers("/api/admin/**")
+          .hasRole("ADMIN")
+          .anyRequest()
+          .authenticated()
+      )
+      .exceptionHandling(ex ->
+        ex
+          .authenticationEntryPoint((req, res, e) -> {
+            res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            res.setContentType("application/json");
+            res
+              .getWriter()
+              .write("{\"success\":false,\"message\":\"Unauthorized\"}");
+          })
+          .accessDeniedHandler((req, res, e) -> {
+            res.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            res.setContentType("application/json");
+            res
+              .getWriter()
+              .write("{\"success\":false,\"message\":\"Forbidden\"}");
+          })
+      )
+      .addFilterBefore(
+        jwtAuthenticationFilter,
+        UsernamePasswordAuthenticationFilter.class
+      );
 
     return http.build();
   }
@@ -86,8 +99,9 @@ public class SecurityConfig {
   }
 
   @Bean
-  public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
-      throws Exception {
+  public AuthenticationManager authenticationManager(
+    AuthenticationConfiguration config
+  ) throws Exception {
     return config.getAuthenticationManager();
   }
 }

@@ -3,7 +3,6 @@ package com.softwareuniverse.paymentgateway;
 import java.util.Map;
 
 public interface WebhookHandler {
-
   /** Gateway identifier */
   String getGatewayName();
 
@@ -16,10 +15,15 @@ public interface WebhookHandler {
    * @param headers HTTP headers from the webhook request
    * @return WebhookResult with status + identifiers
    */
-  WebhookResult process(String rawBody, Map<String, Object> payload, Map<String, String> headers);
+  WebhookResult process(
+    String rawBody,
+    Map<String, Object> payload,
+    Map<String, String> headers
+  );
 
   /** Standardized webhook result returned by all gateway handlers. */
   class WebhookResult {
+
     private String orderId; // our gateway_order_id
     private String paymentId; // gateway's payment id
     private String utr; // bank reference / UTR

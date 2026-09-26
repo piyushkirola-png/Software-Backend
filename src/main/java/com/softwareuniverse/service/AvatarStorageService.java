@@ -23,13 +23,16 @@ public class AvatarStorageService {
   @Value("${app.upload.avatar-subdir:avatars}")
   private String avatarSubdir;
 
-  private static final Set<String> ALLOWED_TYPES =
-      Set.of("image/png", "image/jpeg", "image/jpg", "image/webp");
+  private static final Set<String> ALLOWED_TYPES = Set.of(
+    "image/png",
+    "image/jpeg",
+    "image/jpg",
+    "image/webp"
+  );
   private static final long MAX_SIZE = 5 * 1024 * 1024L; // 5 MB
 
   /**
    * Saves the file under uploads/avatars/<userId>-<uuid>.<ext> Returns the public URL path:
-   * /uploads/avatars/<filename>
    */
   public String store(MultipartFile file, Long userId) {
     if (file == null || file.isEmpty()) {
@@ -39,19 +42,27 @@ public class AvatarStorageService {
       throw new RuntimeException("File must be under 5 MB");
     }
     String contentType = file.getContentType();
-    if (contentType == null || !ALLOWED_TYPES.contains(contentType.toLowerCase())) {
+    if (
+      contentType == null || !ALLOWED_TYPES.contains(contentType.toLowerCase())
+    ) {
       throw new RuntimeException("Only PNG, JPG, or WEBP images allowed");
     }
 
     try {
-      Path avatarDir = Paths.get(uploadsDir, avatarSubdir).toAbsolutePath().normalize();
+      Path avatarDir = Paths.get(uploadsDir, avatarSubdir)
+        .toAbsolutePath()
+        .normalize();
       Files.createDirectories(avatarDir);
 
       String ext = getExtension(file.getOriginalFilename(), contentType);
       String filename = "avatar-" + userId + "-" + UUID.randomUUID() + ext;
       Path target = avatarDir.resolve(filename);
 
-      Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+      Files.copy(
+        file.getInputStream(),
+        target,
+        StandardCopyOption.REPLACE_EXISTING
+      );
       log.info("Avatar saved: {}", target);
 
       return "/uploads/" + avatarSubdir + "/" + filename;

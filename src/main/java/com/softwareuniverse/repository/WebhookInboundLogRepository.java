@@ -6,8 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface WebhookInboundLogRepository extends JpaRepository<WebhookInboundLog, Long> {
-
+public interface WebhookInboundLogRepository
+  extends JpaRepository<WebhookInboundLog, Long>
+{
   List<WebhookInboundLog> findTop50ByOrderByReceivedAtDesc();
 
   List<WebhookInboundLog> findByGatewayOrderByReceivedAtDesc(String gateway);

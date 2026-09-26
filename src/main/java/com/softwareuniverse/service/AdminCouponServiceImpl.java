@@ -7,7 +7,6 @@ import com.softwareuniverse.entity.Coupon;
 import com.softwareuniverse.entity.CouponType;
 import com.softwareuniverse.repository.CouponRepository;
 import java.math.BigDecimal;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -21,29 +20,49 @@ public class AdminCouponServiceImpl implements AdminCouponService {
 
   @Override
   @Transactional(readOnly = true)
-  public Page<CouponResponse> getAllCoupons(int page, int size, String status) {
-    Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-    Page<Coupon> coupons = couponRepository.findAll(pageable);
+  public Page<CouponResponse> getAllCoupons(
+    int page,
+    int size,
+    String status,
+    String type,
+    BigDecimal valueMin,
+    BigDecimal valueMax
+  ) {
+    Pageable pageable = PageRequest.of(
+      page,
+      size,
+      Sort.by("createdAt").descending()
+    );
 
-    if (status != null && !status.isBlank()) {
-      boolean active = "active".equalsIgnoreCase(status);
-      List<Coupon> filtered =
-          coupons.getContent().stream()
-              .filter(c -> Boolean.valueOf(active).equals(c.getIsActive()))
-              .toList();
-      return new PageImpl<>(
-          filtered.stream().map(this::toResponse).toList(), pageable, filtered.size());
+    // Status: null -> no filter; "active" -> true; "inactive" -> false
+    Boolean statusActive = null;
+    if (
+      status != null && !status.isBlank() && !"ALL".equalsIgnoreCase(status)
+    ) {
+      statusActive = "active".equalsIgnoreCase(status);
     }
-    return coupons.map(this::toResponse);
+
+    // Type: parse enum or null
+    CouponType typeEnum = null;
+    if (type != null && !type.isBlank() && !"ALL".equalsIgnoreCase(type)) {
+      try {
+        typeEnum = CouponType.valueOf(type.toUpperCase());
+      } catch (IllegalArgumentException ignored) {
+        // invalid -> no filter
+      }
+    }
+
+    return couponRepository
+      .findAdminCoupons(statusActive, typeEnum, valueMin, valueMax, pageable)
+      .map(this::toResponse);
   }
 
   @Override
   @Transactional(readOnly = true)
   public CouponResponse getCoupon(Long id) {
-    Coupon c =
-        couponRepository
-            .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Coupon not found"));
+    Coupon c = couponRepository
+      .findById(id)
+      .orElseThrow(() -> new ResourceNotFoundException("Coupon not found"));
     return toResponse(c);
   }
 
@@ -53,7 +72,9 @@ public class AdminCouponServiceImpl implements AdminCouponService {
     String code = request.getCode().trim().toUpperCase();
 
     if (couponRepository.existsByCode(code)) {
-      throw new RuntimeException("Coupon with this code already exists: " + code);
+      throw new RuntimeException(
+        "Coupon with this code already exists: " + code
+      );
     }
 
     CouponType type = parseType(request.getType());
@@ -64,11 +85,16 @@ public class AdminCouponServiceImpl implements AdminCouponService {
     c.setType(type);
     c.setValue(request.getValue());
     c.setMinOrderAmount(
-        request.getMinOrderAmount() != null ? request.getMinOrderAmount() : BigDecimal.ZERO);
+      request.getMinOrderAmount() != null
+        ? request.getMinOrderAmount()
+        : BigDecimal.ZERO
+    );
     c.setMaxDiscount(request.getMaxDiscount());
     c.setUsageLimit(request.getUsageLimit());
     c.setUsedCount(0);
-    c.setPerUserLimit(request.getPerUserLimit() != null ? request.getPerUserLimit() : 1);
+    c.setPerUserLimit(
+      request.getPerUserLimit() != null ? request.getPerUserLimit() : 1
+    );
     c.setStartsAt(request.getStartsAt());
     c.setExpiresAt(request.getExpiresAt());
     c.setIsActive(request.getIsActive() != null ? request.getIsActive() : true);
@@ -80,10 +106,9 @@ public class AdminCouponServiceImpl implements AdminCouponService {
   @Override
   @Transactional
   public CouponResponse updateCoupon(Long id, CouponRequest request) {
-    Coupon c =
-        couponRepository
-            .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Coupon not found"));
+    Coupon c = couponRepository
+      .findById(id)
+      .orElseThrow(() -> new ResourceNotFoundException("Coupon not found"));
 
     if (request.getCode() != null && !request.getCode().isBlank()) {
       String code = request.getCode().trim().toUpperCase();
@@ -93,13 +118,23 @@ public class AdminCouponServiceImpl implements AdminCouponService {
       c.setCode(code);
     }
 
-    if (request.getDescription() != null) c.setDescription(request.getDescription());
+    if (request.getDescription() != null) c.setDescription(
+      request.getDescription()
+    );
     if (request.getType() != null) c.setType(parseType(request.getType()));
     if (request.getValue() != null) c.setValue(request.getValue());
-    if (request.getMinOrderAmount() != null) c.setMinOrderAmount(request.getMinOrderAmount());
-    if (request.getMaxDiscount() != null) c.setMaxDiscount(request.getMaxDiscount());
-    if (request.getUsageLimit() != null) c.setUsageLimit(request.getUsageLimit());
-    if (request.getPerUserLimit() != null) c.setPerUserLimit(request.getPerUserLimit());
+    if (request.getMinOrderAmount() != null) c.setMinOrderAmount(
+      request.getMinOrderAmount()
+    );
+    if (request.getMaxDiscount() != null) c.setMaxDiscount(
+      request.getMaxDiscount()
+    );
+    if (request.getUsageLimit() != null) c.setUsageLimit(
+      request.getUsageLimit()
+    );
+    if (request.getPerUserLimit() != null) c.setPerUserLimit(
+      request.getPerUserLimit()
+    );
     if (request.getStartsAt() != null) c.setStartsAt(request.getStartsAt());
     if (request.getExpiresAt() != null) c.setExpiresAt(request.getExpiresAt());
     if (request.getIsActive() != null) c.setIsActive(request.getIsActive());
@@ -111,20 +146,18 @@ public class AdminCouponServiceImpl implements AdminCouponService {
   @Override
   @Transactional
   public void deleteCoupon(Long id) {
-    Coupon c =
-        couponRepository
-            .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Coupon not found"));
+    Coupon c = couponRepository
+      .findById(id)
+      .orElseThrow(() -> new ResourceNotFoundException("Coupon not found"));
     couponRepository.delete(c);
   }
 
   @Override
   @Transactional
   public CouponResponse toggleActive(Long id) {
-    Coupon c =
-        couponRepository
-            .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Coupon not found"));
+    Coupon c = couponRepository
+      .findById(id)
+      .orElseThrow(() -> new ResourceNotFoundException("Coupon not found"));
     c.setIsActive(!Boolean.TRUE.equals(c.getIsActive()));
     couponRepository.save(c);
     return toResponse(c);
@@ -142,19 +175,19 @@ public class AdminCouponServiceImpl implements AdminCouponService {
 
   private CouponResponse toResponse(Coupon c) {
     return CouponResponse.builder()
-        .id(c.getId())
-        .code(c.getCode())
-        .description(c.getDescription())
-        .type(c.getType().name())
-        .value(c.getValue())
-        .minOrderAmount(c.getMinOrderAmount())
-        .maxDiscount(c.getMaxDiscount())
-        .usageLimit(c.getUsageLimit())
-        .usedCount(c.getUsedCount())
-        .perUserLimit(c.getPerUserLimit())
-        .startsAt(c.getStartsAt())
-        .expiresAt(c.getExpiresAt())
-        .isActive(c.getIsActive())
-        .build();
+      .id(c.getId())
+      .code(c.getCode())
+      .description(c.getDescription())
+      .type(c.getType().name())
+      .value(c.getValue())
+      .minOrderAmount(c.getMinOrderAmount())
+      .maxDiscount(c.getMaxDiscount())
+      .usageLimit(c.getUsageLimit())
+      .usedCount(c.getUsedCount())
+      .perUserLimit(c.getPerUserLimit())
+      .startsAt(c.getStartsAt())
+      .expiresAt(c.getExpiresAt())
+      .isActive(c.getIsActive())
+      .build();
   }
 }

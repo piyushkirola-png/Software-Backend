@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GstReportResponse {
+
   private LocalDate fromDate;
   private LocalDate toDate;
   private long totalInvoices;
@@ -29,6 +30,7 @@ public class GstReportResponse {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class InvoiceLine {
+
     private String invoiceNumber;
     private LocalDate invoiceDate;
     private String buyerName;

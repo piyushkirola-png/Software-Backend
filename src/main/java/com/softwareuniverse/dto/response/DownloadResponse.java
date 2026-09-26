@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DownloadResponse {
+
   private Long productId;
   private String productTitle;
   private String slug;

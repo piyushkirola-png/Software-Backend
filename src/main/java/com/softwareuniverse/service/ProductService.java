@@ -8,19 +8,21 @@ public interface ProductService {
   List<ProductResponse> getFeaturedProducts();
 
   Page<ProductResponse> getAllActiveProducts(
-      int page,
-      int size,
-      String sortBy,
-      java.math.BigDecimal minPrice,
-      java.math.BigDecimal maxPrice);
+    int page,
+    int size,
+    String sortBy,
+    java.math.BigDecimal minPrice,
+    java.math.BigDecimal maxPrice
+  );
 
   Page<ProductResponse> getProductsByCategorySlug(
-      String slug,
-      int page,
-      int size,
-      String sortBy,
-      java.math.BigDecimal minPrice,
-      java.math.BigDecimal maxPrice);
+    String slug,
+    int page,
+    int size,
+    String sortBy,
+    java.math.BigDecimal minPrice,
+    java.math.BigDecimal maxPrice
+  );
 
   Page<ProductResponse> searchProducts(String query, int page, int size);
 

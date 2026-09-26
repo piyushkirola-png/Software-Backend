@@ -32,7 +32,7 @@ public class Review {
   private Order order;
 
   @Column(name = "rating", nullable = false)
-  private Integer rating; // 1-5
+  private Integer rating;
 
   @Column(name = "title", length = 200)
   private String title;

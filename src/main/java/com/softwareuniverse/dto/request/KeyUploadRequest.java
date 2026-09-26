@@ -10,7 +10,6 @@ public class KeyUploadRequest {
   @NotNull(message = "Product ID is required")
   private Long productId;
 
-  // Required if product has variants
   private Long variantId;
 
   @NotBlank(message = "License key is required")

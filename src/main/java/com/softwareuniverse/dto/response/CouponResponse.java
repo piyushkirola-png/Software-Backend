@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CouponResponse {
+
   private Long id;
   private String code;
   private String description;

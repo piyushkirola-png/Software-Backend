@@ -19,24 +19,40 @@ public class AdminReviewController {
 
   @GetMapping
   public ResponseEntity<ApiResponse<Page<ReviewResponse>>> getAll(
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "20") int size,
-      @RequestParam(required = false) String status) {
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "20") int size,
+    @RequestParam(required = false) String status
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success(
-            "Reviews fetched", adminReviewService.getAllReviews(page, size, status)));
+      ApiResponse.success(
+        "Reviews fetched",
+        adminReviewService.getAllReviews(page, size, status)
+      )
+    );
   }
 
   @PostMapping("/{id}/approve")
-  public ResponseEntity<ApiResponse<ReviewResponse>> approve(@PathVariable Long id) {
+  public ResponseEntity<ApiResponse<ReviewResponse>> approve(
+    @PathVariable Long id
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success("Review approved", adminReviewService.moderateReview(id, true)));
+      ApiResponse.success(
+        "Review approved",
+        adminReviewService.moderateReview(id, true)
+      )
+    );
   }
 
   @PostMapping("/{id}/reject")
-  public ResponseEntity<ApiResponse<ReviewResponse>> reject(@PathVariable Long id) {
+  public ResponseEntity<ApiResponse<ReviewResponse>> reject(
+    @PathVariable Long id
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success("Review rejected", adminReviewService.moderateReview(id, false)));
+      ApiResponse.success(
+        "Review rejected",
+        adminReviewService.moderateReview(id, false)
+      )
+    );
   }
 
   @DeleteMapping("/{id}")

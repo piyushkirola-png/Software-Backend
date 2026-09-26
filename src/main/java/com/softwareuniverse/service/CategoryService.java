@@ -5,7 +5,6 @@ import com.softwareuniverse.entity.Category;
 import java.util.List;
 
 public interface CategoryService {
-
   List<CategoryResponse> getAllActiveCategories();
 
   CategoryResponse getCategoryBySlug(String slug);

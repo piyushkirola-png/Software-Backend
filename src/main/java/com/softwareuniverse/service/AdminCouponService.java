@@ -5,8 +5,14 @@ import com.softwareuniverse.dto.response.CouponResponse;
 import org.springframework.data.domain.Page;
 
 public interface AdminCouponService {
-
-  Page<CouponResponse> getAllCoupons(int page, int size, String status);
+  Page<CouponResponse> getAllCoupons(
+    int page,
+    int size,
+    String status,
+    String type,
+    java.math.BigDecimal valueMin,
+    java.math.BigDecimal valueMax
+  );
 
   CouponResponse getCoupon(Long id);
 

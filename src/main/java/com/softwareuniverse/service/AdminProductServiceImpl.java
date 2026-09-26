@@ -6,6 +6,7 @@ import com.softwareuniverse.dto.response.ProductResponse;
 import com.softwareuniverse.dto.response.ProductVariantResponse;
 import com.softwareuniverse.entity.*;
 import com.softwareuniverse.repository.*;
+import com.softwareuniverse.entity.KeyStatus;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
@@ -22,6 +23,7 @@ public class AdminProductServiceImpl implements AdminProductService {
   private final CategoryRepository categoryRepository;
   private final ProductVariantRepository variantRepository;
   private final ProductImageRepository imageRepository;
+  private final LicenseKeyRepository licenseKeyRepository;
 
   @Override
   @Transactional(readOnly = true)
@@ -277,7 +279,13 @@ public class AdminProductServiceImpl implements AdminProductService {
               .variantName(v.getVariantName())
               .mrp(v.getMrp())
               .price(v.getPrice())
-              .stockQuantity(v.getStockQuantity())
+              .stockQuantity(
+                (int) licenseKeyRepository.countByProductIdAndVariantIdAndStatus(
+                  p.getId(),
+                  v.getId(),
+                  KeyStatus.AVAILABLE
+                )
+              )
               .isActive(v.getIsActive())
               .build()
           )
@@ -302,7 +310,12 @@ public class AdminProductServiceImpl implements AdminProductService {
       .licenseType(p.getLicenseType())
       .activationType(p.getActivationType())
       .hasVariants(p.getHasVariants())
-      .stockQuantity(p.getStockQuantity())
+      .stockQuantity(
+        (int) licenseKeyRepository.countByProductIdAndStatus(
+          p.getId(),
+          KeyStatus.AVAILABLE
+        )
+      )
       .isFeatured(p.getIsFeatured())
       .isActive(p.getIsActive())
       .displayOrder(p.getDisplayOrder())

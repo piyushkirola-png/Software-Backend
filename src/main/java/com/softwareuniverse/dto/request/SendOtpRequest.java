@@ -7,8 +7,9 @@ import lombok.Data;
 @Data
 public class SendOtpRequest {
 
-  @NotBlank @Email private String email;
+  @NotBlank
+  @Email
+  private String email;
 
-  // "FORGOT_PASSWORD", "LOGIN" etc.
   private String purpose = "FORGOT_PASSWORD";
 }

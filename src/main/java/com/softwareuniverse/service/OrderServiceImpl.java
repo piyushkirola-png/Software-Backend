@@ -30,6 +30,7 @@ public class OrderServiceImpl implements OrderService {
   private final LicenseKeyRepository licenseKeyRepository;
   private final CouponService couponService;
   private final InvoiceRepository invoiceRepository;
+  private final AdminKeyService adminKeyService;
 
   private static final BigDecimal GST_RATE = new BigDecimal("0.18"); // 18% GST
   private static final DateTimeFormatter ORDER_DATE_FMT =
@@ -55,10 +56,6 @@ public class OrderServiceImpl implements OrderService {
       throw new RuntimeException("Cart is empty");
     }
 
-    for (CartItem item : cartItems) {
-      reserveKey(item);
-    }
-
     BigDecimal subtotal = cartItems
       .stream()
       .map(i -> i.getUnitPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
@@ -81,6 +78,7 @@ public class OrderServiceImpl implements OrderService {
 
     BigDecimal total = afterDiscount.setScale(2, RoundingMode.HALF_UP);
 
+    // 1) Create order FIRST so we can link keys to it
     Order order = new Order();
     order.setOrderNumber(generateOrderNumber());
     order.setUser(user);
@@ -97,6 +95,27 @@ public class OrderServiceImpl implements OrderService {
     order.setNotes(request.getNotes());
     orderRepository.save(order);
 
+    // 2) Reserve keys — one per unit of quantity
+    for (CartItem item : cartItems) {
+      reserveKeys(item, order);
+    }
+
+    // 3) Sync stock for each affected product/variant
+    for (CartItem item : cartItems) {
+      try {
+        adminKeyService.syncStock(
+          item.getProduct().getId(),
+          item.getVariant() != null ? item.getVariant().getId() : null
+        );
+      } catch (Exception e) {
+        org.slf4j.LoggerFactory.getLogger(OrderServiceImpl.class).warn(
+          "syncStock failed after reserve: {}",
+          e.getMessage()
+        );
+      }
+    }
+
+    // 4) Create order items
     for (CartItem item : cartItems) {
       OrderItem orderItem = new OrderItem();
       orderItem.setOrder(order);
@@ -286,39 +305,48 @@ public class OrderServiceImpl implements OrderService {
     return toResponse(order);
   }
 
-  private void reserveKey(CartItem item) {
-    LicenseKey key;
+  private void reserveKeys(CartItem item, Order order) {
+    int quantity = item.getQuantity() != null ? item.getQuantity() : 1;
+    if (quantity < 1) quantity = 1;
+
+    List<LicenseKey> available;
     if (item.getVariant() != null) {
-      key = licenseKeyRepository
-        .findFirstByProductIdAndVariantIdAndStatus(
-          item.getProduct().getId(),
-          item.getVariant().getId(),
-          KeyStatus.AVAILABLE
-        )
-        .orElseThrow(() ->
-          new RuntimeException(
-            "Out of stock for: " +
-              item.getProduct().getTitle() +
-              " (" +
-              item.getVariant().getVariantName() +
-              ")"
-          )
-        );
+      available = licenseKeyRepository.findByProductIdAndVariantIdAndStatus(
+        item.getProduct().getId(),
+        item.getVariant().getId(),
+        KeyStatus.AVAILABLE
+      );
     } else {
-      key = licenseKeyRepository
-        .findFirstByProductIdAndStatus(
-          item.getProduct().getId(),
-          KeyStatus.AVAILABLE
-        )
-        .orElseThrow(() ->
-          new RuntimeException(
-            "Out of stock for: " + item.getProduct().getTitle()
-          )
-        );
+      available = licenseKeyRepository.findByProductIdAndStatus(
+        item.getProduct().getId(),
+        KeyStatus.AVAILABLE
+      );
     }
-    key.setStatus(KeyStatus.RESERVED);
-    key.setReservedAt(LocalDateTime.now());
-    licenseKeyRepository.save(key);
+
+    if (available.size() < quantity) {
+      String suffix =
+        item.getVariant() != null
+          ? " (" + item.getVariant().getVariantName() + ")"
+          : "";
+      throw new RuntimeException(
+        "Only " +
+          available.size() +
+          " key(s) available for: " +
+          item.getProduct().getTitle() +
+          suffix +
+          ". Requested: " +
+          quantity
+      );
+    }
+
+    LocalDateTime now = LocalDateTime.now();
+    List<LicenseKey> toReserve = available.subList(0, quantity);
+    for (LicenseKey key : toReserve) {
+      key.setStatus(KeyStatus.RESERVED);
+      key.setReservedAt(now);
+      key.setOrder(order);
+    }
+    licenseKeyRepository.saveAll(toReserve);
   }
 
   private String generateOrderNumber() {
@@ -335,9 +363,9 @@ public class OrderServiceImpl implements OrderService {
     List<OrderItemResponse> itemResponses = items
       .stream()
       .map(item -> {
-        String licenseKey = null;
+        java.util.List<String> licenseKeys = new java.util.ArrayList<>();
         if (OrderStatus.SUCCESS.equals(order.getStatus())) {
-          licenseKey = keys
+          licenseKeys = keys
             .stream()
             .filter(
               k ->
@@ -348,9 +376,9 @@ public class OrderServiceImpl implements OrderService {
                     k.getVariant().getId().equals(item.getVariant().getId())))
             )
             .map(LicenseKey::getLicenseKey)
-            .findFirst()
-            .orElse(null);
+            .toList();
         }
+        String firstKey = licenseKeys.isEmpty() ? null : licenseKeys.get(0);
         return OrderItemResponse.builder()
           .id(item.getId())
           .productId(item.getProduct().getId())
@@ -364,7 +392,8 @@ public class OrderServiceImpl implements OrderService {
           .quantity(item.getQuantity())
           .unitPrice(item.getUnitPrice())
           .lineTotal(item.getLineTotal())
-          .licenseKey(licenseKey)
+          .licenseKey(firstKey)
+          .licenseKeys(licenseKeys)
           .build();
       })
       .toList();

@@ -30,14 +30,15 @@ public class ContactServiceImpl implements ContactService {
       m.setReplyTo(request.getEmail());
       m.setSubject("New Contact Message from " + request.getName());
       m.setText(
-          "Name: "
-              + request.getName()
-              + "\nEmail: "
-              + request.getEmail()
-              + "\nPhone: "
-              + (request.getPhone() != null ? request.getPhone() : "-")
-              + "\n\nMessage:\n"
-              + request.getMessage());
+        "Name: " +
+          request.getName() +
+          "\nEmail: " +
+          request.getEmail() +
+          "\nPhone: " +
+          (request.getPhone() != null ? request.getPhone() : "-") +
+          "\n\nMessage:\n" +
+          request.getMessage()
+      );
       mailSender.send(m);
       log.info("Contact form message sent from {}", request.getEmail());
     } catch (Exception e) {

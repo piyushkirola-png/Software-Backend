@@ -5,7 +5,6 @@ import com.softwareuniverse.dto.response.CategoryResponse;
 import java.util.List;
 
 public interface AdminCategoryService {
-
   List<CategoryResponse> getAllCategories();
 
   CategoryResponse getCategory(Long id);

@@ -27,14 +27,22 @@ public class CouponServiceImpl implements CouponService {
 
   @Override
   @Transactional(readOnly = true)
-  public CouponResponse validateCoupon(String code, BigDecimal orderSubtotal, Long userId) {
+  public CouponResponse validateCoupon(
+    String code,
+    BigDecimal orderSubtotal,
+    Long userId
+  ) {
     Coupon coupon = fetchAndValidate(code, orderSubtotal, userId);
     return toResponse(coupon);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public BigDecimal calculateDiscount(String code, BigDecimal orderSubtotal, Long userId) {
+  public BigDecimal calculateDiscount(
+    String code,
+    BigDecimal orderSubtotal,
+    Long userId
+  ) {
     if (code == null || code.isBlank()) return BigDecimal.ZERO;
     Coupon coupon = fetchAndValidate(code, orderSubtotal, userId);
     return computeDiscount(coupon, orderSubtotal);
@@ -44,10 +52,9 @@ public class CouponServiceImpl implements CouponService {
   @Transactional
   public void recordUsage(String code, Long userId, Long orderId) {
     if (code == null || code.isBlank()) return;
-    Coupon coupon =
-        couponRepository
-            .findByCodeIgnoreCase(code)
-            .orElseThrow(() -> new ResourceNotFoundException("Coupon not found"));
+    Coupon coupon = couponRepository
+      .findByCodeIgnoreCase(code)
+      .orElseThrow(() -> new ResourceNotFoundException("Coupon not found"));
 
     coupon.setUsedCount(coupon.getUsedCount() + 1);
     couponRepository.save(coupon);
@@ -61,11 +68,14 @@ public class CouponServiceImpl implements CouponService {
 
   // ============ Helpers ============
 
-  private Coupon fetchAndValidate(String code, BigDecimal subtotal, Long userId) {
-    Coupon coupon =
-        couponRepository
-            .findByCodeIgnoreCase(code)
-            .orElseThrow(() -> new ResourceNotFoundException("Invalid coupon code"));
+  private Coupon fetchAndValidate(
+    String code,
+    BigDecimal subtotal,
+    Long userId
+  ) {
+    Coupon coupon = couponRepository
+      .findByCodeIgnoreCase(code)
+      .orElseThrow(() -> new ResourceNotFoundException("Invalid coupon code"));
 
     if (!Boolean.TRUE.equals(coupon.getIsActive())) {
       throw new RuntimeException("Coupon is not active");
@@ -78,15 +88,25 @@ public class CouponServiceImpl implements CouponService {
     if (coupon.getExpiresAt() != null && now.isAfter(coupon.getExpiresAt())) {
       throw new RuntimeException("Coupon has expired");
     }
-    if (coupon.getUsageLimit() != null && coupon.getUsedCount() >= coupon.getUsageLimit()) {
+    if (
+      coupon.getUsageLimit() != null &&
+      coupon.getUsedCount() >= coupon.getUsageLimit()
+    ) {
       throw new RuntimeException("Coupon usage limit reached");
     }
-    if (coupon.getMinOrderAmount() != null && subtotal.compareTo(coupon.getMinOrderAmount()) < 0) {
+    if (
+      coupon.getMinOrderAmount() != null &&
+      subtotal.compareTo(coupon.getMinOrderAmount()) < 0
+    ) {
       throw new RuntimeException(
-          "Minimum order amount ₹" + coupon.getMinOrderAmount() + " required");
+        "Minimum order amount ₹" + coupon.getMinOrderAmount() + " required"
+      );
     }
     if (coupon.getPerUserLimit() != null && userId != null) {
-      long used = couponUsageRepository.countByCouponIdAndUserId(coupon.getId(), userId);
+      long used = couponUsageRepository.countByCouponIdAndUserId(
+        coupon.getId(),
+        userId
+      );
       if (used >= coupon.getPerUserLimit()) {
         throw new RuntimeException("You have already used this coupon");
       }
@@ -97,14 +117,16 @@ public class CouponServiceImpl implements CouponService {
   private BigDecimal computeDiscount(Coupon coupon, BigDecimal subtotal) {
     BigDecimal discount;
     if (coupon.getType() == CouponType.PERCENT) {
-      discount =
-          subtotal
-              .multiply(coupon.getValue())
-              .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+      discount = subtotal
+        .multiply(coupon.getValue())
+        .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
     } else {
       discount = coupon.getValue();
     }
-    if (coupon.getMaxDiscount() != null && discount.compareTo(coupon.getMaxDiscount()) > 0) {
+    if (
+      coupon.getMaxDiscount() != null &&
+      discount.compareTo(coupon.getMaxDiscount()) > 0
+    ) {
       discount = coupon.getMaxDiscount();
     }
     if (discount.compareTo(subtotal) > 0) discount = subtotal;
@@ -113,19 +135,19 @@ public class CouponServiceImpl implements CouponService {
 
   private CouponResponse toResponse(Coupon c) {
     return CouponResponse.builder()
-        .id(c.getId())
-        .code(c.getCode())
-        .description(c.getDescription())
-        .type(c.getType().name())
-        .value(c.getValue())
-        .minOrderAmount(c.getMinOrderAmount())
-        .maxDiscount(c.getMaxDiscount())
-        .usageLimit(c.getUsageLimit())
-        .usedCount(c.getUsedCount())
-        .perUserLimit(c.getPerUserLimit())
-        .startsAt(c.getStartsAt())
-        .expiresAt(c.getExpiresAt())
-        .isActive(c.getIsActive())
-        .build();
+      .id(c.getId())
+      .code(c.getCode())
+      .description(c.getDescription())
+      .type(c.getType().name())
+      .value(c.getValue())
+      .minOrderAmount(c.getMinOrderAmount())
+      .maxDiscount(c.getMaxDiscount())
+      .usageLimit(c.getUsageLimit())
+      .usedCount(c.getUsedCount())
+      .perUserLimit(c.getPerUserLimit())
+      .startsAt(c.getStartsAt())
+      .expiresAt(c.getExpiresAt())
+      .isActive(c.getIsActive())
+      .build();
   }
 }

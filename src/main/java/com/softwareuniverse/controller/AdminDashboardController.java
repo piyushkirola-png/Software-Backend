@@ -25,33 +25,56 @@ public class AdminDashboardController {
   @GetMapping("/stats")
   public ResponseEntity<ApiResponse<DashboardStatsResponse>> getStats() {
     return ResponseEntity.ok(
-        ApiResponse.success("Dashboard stats fetched", dashboardService.getDashboardStats()));
+      ApiResponse.success(
+        "Dashboard stats fetched",
+        dashboardService.getDashboardStats()
+      )
+    );
   }
 
   @GetMapping("/recent-orders")
   public ResponseEntity<ApiResponse<List<RecentOrderResponse>>> recentOrders(
-      @RequestParam(defaultValue = "10") int limit) {
+    @RequestParam(defaultValue = "10") int limit
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success("Recent orders", dashboardService.getRecentOrders(limit)));
+      ApiResponse.success(
+        "Recent orders",
+        dashboardService.getRecentOrders(limit)
+      )
+    );
   }
 
   @GetMapping("/reports/sales")
   public ResponseEntity<ApiResponse<SalesReportResponse>> salesReport(
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-          LocalDate fromDate,
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-          LocalDate toDate) {
+    @RequestParam(required = false) @DateTimeFormat(
+      iso = DateTimeFormat.ISO.DATE
+    ) LocalDate fromDate,
+    @RequestParam(required = false) @DateTimeFormat(
+      iso = DateTimeFormat.ISO.DATE
+    ) LocalDate toDate
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success("Sales report", dashboardService.getSalesReport(fromDate, toDate)));
+      ApiResponse.success(
+        "Sales report",
+        dashboardService.getSalesReport(fromDate, toDate)
+      )
+    );
   }
 
   @GetMapping("/reports/gst")
   public ResponseEntity<ApiResponse<GstReportResponse>> gstReport(
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-          LocalDate fromDate,
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-          LocalDate toDate) {
+    @RequestParam(required = false) @DateTimeFormat(
+      iso = DateTimeFormat.ISO.DATE
+    ) LocalDate fromDate,
+    @RequestParam(required = false) @DateTimeFormat(
+      iso = DateTimeFormat.ISO.DATE
+    ) LocalDate toDate
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success("GST report", dashboardService.getGstReport(fromDate, toDate)));
+      ApiResponse.success(
+        "GST report",
+        dashboardService.getGstReport(fromDate, toDate)
+      )
+    );
   }
 }

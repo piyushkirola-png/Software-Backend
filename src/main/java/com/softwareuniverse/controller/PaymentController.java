@@ -26,46 +26,62 @@ public class PaymentController {
 
   @PostMapping("/initiate")
   public ResponseEntity<ApiResponse<PaymentInitiateResponse>> initiate(
-      Principal principal, @Valid @RequestBody PaymentRequest request) {
+    Principal principal,
+    @Valid @RequestBody PaymentRequest request
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success(
-            "Payment initiated",
-            paymentService.initiatePayment(currentUserId(principal), request)));
+      ApiResponse.success(
+        "Payment initiated",
+        paymentService.initiatePayment(currentUserId(principal), request)
+      )
+    );
   }
 
   @GetMapping("/{paymentId}")
   public ResponseEntity<ApiResponse<PaymentResponse>> getById(
-      Principal principal, @PathVariable Long paymentId) {
+    Principal principal,
+    @PathVariable Long paymentId
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success(
-            "Payment fetched", paymentService.getPaymentById(currentUserId(principal), paymentId)));
+      ApiResponse.success(
+        "Payment fetched",
+        paymentService.getPaymentById(currentUserId(principal), paymentId)
+      )
+    );
   }
 
   @GetMapping("/order/{orderId}")
   public ResponseEntity<ApiResponse<List<PaymentResponse>>> forOrder(
-      Principal principal, @PathVariable Long orderId) {
+    Principal principal,
+    @PathVariable Long orderId
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success(
-            "Payments fetched",
-            paymentService.getPaymentsForOrder(currentUserId(principal), orderId)));
+      ApiResponse.success(
+        "Payments fetched",
+        paymentService.getPaymentsForOrder(currentUserId(principal), orderId)
+      )
+    );
   }
 
   @PostMapping("/{paymentId}/simulate-success")
   public ResponseEntity<ApiResponse<PaymentResponse>> simulate(
-      Principal principal, @PathVariable Long paymentId) {
+    Principal principal,
+    @PathVariable Long paymentId
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success(
-            "Payment simulated",
-            paymentService.simulateSuccess(currentUserId(principal), paymentId)));
+      ApiResponse.success(
+        "Payment simulated",
+        paymentService.simulateSuccess(currentUserId(principal), paymentId)
+      )
+    );
   }
 
   private Long currentUserId(Principal principal) {
     if (principal == null) throw new ResourceNotFoundException("Unauthorized");
 
-    User user =
-        userRepository
-            .findByEmail(principal.getName())
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    User user = userRepository
+      .findByEmail(principal.getName())
+      .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
     return user.getId();
   }

@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class KeyStockResponse {
+
   private Long productId;
   private String productTitle;
   private Long variantId;

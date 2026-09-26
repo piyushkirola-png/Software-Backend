@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AddressResponse {
+
   private Long id;
   private String fullName;
   private String phone;

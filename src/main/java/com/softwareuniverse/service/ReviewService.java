@@ -6,7 +6,6 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 
 public interface ReviewService {
-
   Page<ReviewResponse> getApprovedReviews(Long productId, int page, int size);
 
   List<ReviewResponse> getFeaturedReviews();

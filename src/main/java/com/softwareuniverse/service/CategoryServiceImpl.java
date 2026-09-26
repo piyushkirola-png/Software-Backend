@@ -18,9 +18,11 @@ public class CategoryServiceImpl implements CategoryService {
   @Override
   @Transactional(readOnly = true)
   public List<CategoryResponse> getAllActiveCategories() {
-    return categoryRepository.findByIsActiveTrueOrderByDisplayOrderAsc().stream()
-        .map(this::toResponse)
-        .toList();
+    return categoryRepository
+      .findByIsActiveTrueOrderByDisplayOrderAsc()
+      .stream()
+      .map(this::toResponse)
+      .toList();
   }
 
   @Override
@@ -49,28 +51,32 @@ public class CategoryServiceImpl implements CategoryService {
 
     // 3. Substring — shortest slug wins
     List<Category> partials =
-        categoryRepository.findBySlugContainingIgnoreCaseOrderBySlugAsc(trimmed);
+      categoryRepository.findBySlugContainingIgnoreCaseOrderBySlugAsc(trimmed);
     if (!partials.isEmpty()) {
-      return partials.stream()
-          .min((a, b) -> Integer.compare(a.getSlug().length(), b.getSlug().length()))
-          .orElse(partials.get(0));
+      return partials
+        .stream()
+        .min((a, b) ->
+          Integer.compare(a.getSlug().length(), b.getSlug().length())
+        )
+        .orElse(partials.get(0));
     }
 
     throw new ResourceNotFoundException("Category not found: " + slug);
   }
 
   private CategoryResponse toResponse(Category c) {
-    Long productCount = c.getProducts() != null ? (long) c.getProducts().size() : 0L;
+    Long productCount =
+      c.getProducts() != null ? (long) c.getProducts().size() : 0L;
     return CategoryResponse.builder()
-        .id(c.getId())
-        .name(c.getName())
-        .slug(c.getSlug())
-        .description(c.getDescription())
-        .imageUrl(c.getImageUrl())
-        .iconUrl(c.getIconUrl())
-        .displayOrder(c.getDisplayOrder())
-        .isActive(c.getIsActive())
-        .productCount(productCount)
-        .build();
+      .id(c.getId())
+      .name(c.getName())
+      .slug(c.getSlug())
+      .description(c.getDescription())
+      .imageUrl(c.getImageUrl())
+      .iconUrl(c.getIconUrl())
+      .displayOrder(c.getDisplayOrder())
+      .isActive(c.getIsActive())
+      .productCount(productCount)
+      .build();
   }
 }

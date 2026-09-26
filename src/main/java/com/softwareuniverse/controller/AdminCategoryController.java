@@ -22,27 +22,48 @@ public class AdminCategoryController {
   @GetMapping
   public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAll() {
     return ResponseEntity.ok(
-        ApiResponse.success("Categories fetched", adminCategoryService.getAllCategories()));
+      ApiResponse.success(
+        "Categories fetched",
+        adminCategoryService.getAllCategories()
+      )
+    );
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<ApiResponse<CategoryResponse>> get(@PathVariable Long id) {
+  public ResponseEntity<ApiResponse<CategoryResponse>> get(
+    @PathVariable Long id
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success("Category fetched", adminCategoryService.getCategory(id)));
+      ApiResponse.success(
+        "Category fetched",
+        adminCategoryService.getCategory(id)
+      )
+    );
   }
 
   @PostMapping
   public ResponseEntity<ApiResponse<CategoryResponse>> create(
-      @Valid @RequestBody CategoryRequest request) {
+    @Valid @RequestBody CategoryRequest request
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success("Category created", adminCategoryService.createCategory(request)));
+      ApiResponse.success(
+        "Category created",
+        adminCategoryService.createCategory(request)
+      )
+    );
   }
 
   @PutMapping("/{id}")
   public ResponseEntity<ApiResponse<CategoryResponse>> update(
-      @PathVariable Long id, @Valid @RequestBody CategoryRequest request) {
+    @PathVariable Long id,
+    @Valid @RequestBody CategoryRequest request
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success("Category updated", adminCategoryService.updateCategory(id, request)));
+      ApiResponse.success(
+        "Category updated",
+        adminCategoryService.updateCategory(id, request)
+      )
+    );
   }
 
   @DeleteMapping("/{id}")

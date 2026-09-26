@@ -11,12 +11,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReviewResponse {
+
   private Long id;
   private Long productId;
   private String productTitle;
   private Long userId;
   private String userName;
   private String userInitials;
+  private String userAvatarUrl;
   private Integer rating;
   private String title;
   private String comment;

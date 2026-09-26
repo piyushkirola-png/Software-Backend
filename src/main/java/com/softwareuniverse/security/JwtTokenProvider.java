@@ -36,7 +36,9 @@ public class JwtTokenProvider {
   protected void init() {
     byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
     if (keyBytes.length < 32) {
-      throw new IllegalStateException("JWT secret must be at least 32 bytes for HS256");
+      throw new IllegalStateException(
+        "JWT secret must be at least 32 bytes for HS256"
+      );
     }
     key = Keys.hmacShaKeyFor(keyBytes);
   }
@@ -46,38 +48,44 @@ public class JwtTokenProvider {
     Date validity = new Date(now.getTime() + validityInMilliseconds);
 
     return Jwts.builder()
-        .setSubject(email)
-        .claim("role", role)
-        .setIssuedAt(now)
-        .setExpiration(validity)
-        .signWith(key, SignatureAlgorithm.HS256)
-        .compact();
+      .setSubject(email)
+      .claim("role", role)
+      .setIssuedAt(now)
+      .setExpiration(validity)
+      .signWith(key, SignatureAlgorithm.HS256)
+      .compact();
   }
 
   public Authentication getAuthentication(String token) {
     String email = getEmailFromToken(token);
     UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-    return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+    return new UsernamePasswordAuthenticationToken(
+      userDetails,
+      "",
+      userDetails.getAuthorities()
+    );
   }
 
   public String getEmailFromToken(String token) {
     return Jwts.parserBuilder()
-        .setSigningKey(key)
-        .build()
-        .parseClaimsJws(token)
-        .getBody()
-        .getSubject();
+      .setSigningKey(key)
+      .build()
+      .parseClaimsJws(token)
+      .getBody()
+      .getSubject();
   }
 
   public LocalDateTime getExpiryFromToken(String token) {
-    Date expiration =
-        Jwts.parserBuilder()
-            .setSigningKey(key)
-            .build()
-            .parseClaimsJws(token)
-            .getBody()
-            .getExpiration();
-    return expiration.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+    Date expiration = Jwts.parserBuilder()
+      .setSigningKey(key)
+      .build()
+      .parseClaimsJws(token)
+      .getBody()
+      .getExpiration();
+    return expiration
+      .toInstant()
+      .atZone(ZoneId.systemDefault())
+      .toLocalDateTime();
   }
 
   public boolean validateToken(String token) {

@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GstBreakdown {
+
   private BigDecimal taxableAmount;
   private BigDecimal cgst;
   private BigDecimal sgst;

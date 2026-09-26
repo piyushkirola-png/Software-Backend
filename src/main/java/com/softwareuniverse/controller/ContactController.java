@@ -16,7 +16,9 @@ public class ContactController {
   private final ContactService contactService;
 
   @PostMapping
-  public ResponseEntity<ApiResponse<Void>> submit(@Valid @RequestBody ContactRequest request) {
+  public ResponseEntity<ApiResponse<Void>> submit(
+    @Valid @RequestBody ContactRequest request
+  ) {
     contactService.submit(request);
     return ResponseEntity.ok(ApiResponse.success("Message sent", null));
   }

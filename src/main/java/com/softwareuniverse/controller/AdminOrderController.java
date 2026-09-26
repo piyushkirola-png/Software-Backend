@@ -23,40 +23,63 @@ public class AdminOrderController {
 
   @GetMapping
   public ResponseEntity<ApiResponse<Page<OrderResponse>>> getAll(
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "20") int size,
-      @RequestParam(required = false) String status,
-      @RequestParam(required = false) String search) {
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "20") int size,
+    @RequestParam(required = false) String status,
+    @RequestParam(required = false) String search
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success(
-            "Orders fetched", adminOrderService.getAllOrders(page, size, status, search)));
+      ApiResponse.success(
+        "Orders fetched",
+        adminOrderService.getAllOrders(page, size, status, search)
+      )
+    );
   }
 
   @GetMapping("/date-range")
   public ResponseEntity<ApiResponse<Page<OrderResponse>>> getByDateRange(
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "20") int size,
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-          LocalDate fromDate,
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-          LocalDate toDate,
-      @RequestParam(required = false) String status) {
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "20") int size,
+    @RequestParam(required = false) @DateTimeFormat(
+      iso = DateTimeFormat.ISO.DATE
+    ) LocalDate fromDate,
+    @RequestParam(required = false) @DateTimeFormat(
+      iso = DateTimeFormat.ISO.DATE
+    ) LocalDate toDate,
+    @RequestParam(required = false) String status
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success(
-            "Orders fetched",
-            adminOrderService.getOrdersByDateRange(page, size, fromDate, toDate, status)));
+      ApiResponse.success(
+        "Orders fetched",
+        adminOrderService.getOrdersByDateRange(
+          page,
+          size,
+          fromDate,
+          toDate,
+          status
+        )
+      )
+    );
   }
 
   @GetMapping("/{id}")
   public ResponseEntity<ApiResponse<OrderResponse>> get(@PathVariable Long id) {
-    return ResponseEntity.ok(ApiResponse.success("Order fetched", adminOrderService.getOrder(id)));
+    return ResponseEntity.ok(
+      ApiResponse.success("Order fetched", adminOrderService.getOrder(id))
+    );
   }
 
   @PutMapping("/{id}/status")
   public ResponseEntity<ApiResponse<OrderResponse>> updateStatus(
-      @PathVariable Long id, @RequestParam String status) {
+    @PathVariable Long id,
+    @RequestParam String status
+  ) {
     return ResponseEntity.ok(
-        ApiResponse.success("Order status updated", adminOrderService.updateStatus(id, status)));
+      ApiResponse.success(
+        "Order status updated",
+        adminOrderService.updateStatus(id, status)
+      )
+    );
   }
 
   @PostMapping("/{id}/resend-email")
@@ -69,17 +92,23 @@ public class AdminOrderController {
   public ResponseEntity<byte[]> exportCsv() {
     byte[] csv = adminOrderService.exportOrdersCsv();
     return ResponseEntity.ok()
-        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=orders.csv")
-        .contentType(MediaType.parseMediaType("text/csv"))
-        .body(csv);
+      .header(
+        HttpHeaders.CONTENT_DISPOSITION,
+        "attachment; filename=orders.csv"
+      )
+      .contentType(MediaType.parseMediaType("text/csv"))
+      .body(csv);
   }
 
   @GetMapping("/{id}/invoice")
   public ResponseEntity<byte[]> downloadInvoice(@PathVariable Long id) {
     byte[] pdf = adminOrderService.getInvoicePdf(id);
     return ResponseEntity.ok()
-        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=invoice-" + id + ".pdf")
-        .contentType(MediaType.APPLICATION_PDF)
-        .body(pdf);
+      .header(
+        HttpHeaders.CONTENT_DISPOSITION,
+        "attachment; filename=invoice-" + id + ".pdf"
+      )
+      .contentType(MediaType.APPLICATION_PDF)
+      .body(pdf);
   }
 }

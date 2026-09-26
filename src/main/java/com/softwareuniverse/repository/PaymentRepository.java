@@ -13,7 +13,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
-
   List<Payment> findByOrderId(Long orderId);
 
   Optional<Payment> findByGatewayPaymentId(String gatewayPaymentId);
@@ -21,23 +20,28 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
   Optional<Payment> findByGatewayOrderId(String gatewayOrderId);
 
   /**
-   * Admin listing with optional filters: - status : "SUCCESS" / "FAILED" / "INITIATED" / "PENDING"
-   * or null - gateway : "CASHFREE" / "RAZORPAY" / "PAYU" / "SABPAISA" or null - search : matches
-   * orderNumber OR gatewayOrderId OR gatewayPaymentId (case-insensitive, substring)
+   * Admin listing with optional filters
    */
   @Query(
-      "SELECT p FROM Payment p "
-          + "LEFT JOIN p.order o "
-          + "WHERE (:status IS NULL OR p.status = :status) "
-          + "AND (:gateway IS NULL OR LOWER(p.gateway) = LOWER(:gateway)) "
-          + "AND (:search IS NULL OR "
-          + "     LOWER(o.orderNumber) LIKE LOWER(CONCAT('%', :search, '%')) "
-          + "     OR LOWER(p.gatewayOrderId) LIKE LOWER(CONCAT('%', :search, '%')) "
-          + "     OR LOWER(p.gatewayPaymentId) LIKE LOWER(CONCAT('%', :search, '%'))) "
-          + "ORDER BY p.id DESC")
+    "SELECT p FROM Payment p " +
+      "LEFT JOIN p.order o " +
+      "WHERE (:status IS NULL OR p.status = :status) " +
+      "AND (:gateway IS NULL OR LOWER(p.gateway) = LOWER(:gateway)) " +
+      "AND (:orderNumber IS NULL OR LOWER(o.orderNumber) LIKE LOWER(CONCAT('%', :orderNumber, '%'))) " +
+      "AND (:paymentId IS NULL OR " +
+      "     LOWER(p.gatewayOrderId) LIKE LOWER(CONCAT('%', :paymentId, '%')) " +
+      "     OR LOWER(p.gatewayPaymentId) LIKE LOWER(CONCAT('%', :paymentId, '%'))) " +
+      "AND (:minAmount IS NULL OR p.amount >= :minAmount) " +
+      "AND (:maxAmount IS NULL OR p.amount <= :maxAmount) " +
+      "ORDER BY p.id DESC"
+  )
   Page<Payment> adminSearch(
-      @Param("status") PaymentStatus status,
-      @Param("gateway") String gateway,
-      @Param("search") String search,
-      Pageable pageable);
+    @Param("status") PaymentStatus status,
+    @Param("gateway") String gateway,
+    @Param("orderNumber") String orderNumber,
+    @Param("paymentId") String paymentId,
+    @Param("minAmount") java.math.BigDecimal minAmount,
+    @Param("maxAmount") java.math.BigDecimal maxAmount,
+    Pageable pageable
+  );
 }

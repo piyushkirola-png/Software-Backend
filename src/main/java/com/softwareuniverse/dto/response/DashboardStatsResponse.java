@@ -1,6 +1,7 @@
 package com.softwareuniverse.dto.response;
 
 import java.math.BigDecimal;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,6 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DashboardStatsResponse {
+
   // Revenue
   private BigDecimal totalRevenue;
   private BigDecimal todayRevenue;
@@ -41,4 +43,30 @@ public class DashboardStatsResponse {
   private long reservedKeys;
   private long soldKeys;
   private long revokedKeys;
+
+  // Analytics
+  private List<CategoryRevenue> revenueByCategory;
+  private List<TopProduct> topSellingProducts;
+
+  @Data
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class CategoryRevenue {
+
+    private String categoryName;
+    private BigDecimal revenue;
+  }
+
+  @Data
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class TopProduct {
+
+    private Long productId;
+    private String productTitle;
+    private Long unitsSold;
+    private BigDecimal revenue;
+  }
 }

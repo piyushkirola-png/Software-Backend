@@ -22,7 +22,7 @@ public class EmailService {
 
   private final JavaMailSender mailSender;
 
-  @Value("${spring.mail.username:no-reply@softwareuniverse.in}")
+  @Value("${spring.mail.username:no-reply@softora.in}")
   private String fromEmail;
 
   @Value("${app.uploads.dir:uploads}")
@@ -31,13 +31,14 @@ public class EmailService {
   @Value("${frontend.url:http://localhost:5100}")
   private String frontendUrl;
 
+  // ================= OTP EMAIL =================
   public void sendOtp(String to, String code) {
     try {
       MimeMessage message = mailSender.createMimeMessage();
       MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
       helper.setFrom(fromEmail);
       helper.setTo(to);
-      helper.setSubject("Your verification code â€” Software Universe");
+      helper.setSubject("Your verification code - Softora");
 
       String html = layout(
         "Verify your email",
@@ -58,24 +59,34 @@ public class EmailService {
     }
   }
 
+  // ================= WELCOME EMAIL =================
   public void sendWelcome(String to, String name) {
     try {
       MimeMessage message = mailSender.createMimeMessage();
       MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
       helper.setFrom(fromEmail);
       helper.setTo(to);
-      helper.setSubject("Welcome to Software Universe, " + name + "! ðŸŽ‰");
+      helper.setSubject("Welcome to Softora, " + name + "!");
 
       String body =
         "<p style='margin:0 0 12px;color:#334155;font-size:15px;'>Hi " +
-        name +
+        escapeHtml(name) +
         ",</p>" +
         "<p style='margin:0 0 24px;color:#334155;font-size:15px;'>Welcome aboard! Your account is verified and ready.</p>" +
         "<p style='margin:0 0 12px;color:#0B1F3A;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;'>Here's what you can do right now</p>" +
         "<table role='presentation' cellspacing='0' cellpadding='0' style='margin:0 0 28px;'>" +
-        "<tr><td style='padding:6px 0;color:#16A34A;font-size:16px;width:24px;'>âœ“</td><td style='padding:6px 0;color:#334155;font-size:14px;'>Browse 60+ genuine software licenses</td></tr>" +
-        "<tr><td style='padding:6px 0;color:#16A34A;font-size:16px;'>âœ“</td><td style='padding:6px 0;color:#334155;font-size:14px;'>Get instant email delivery with license keys</td></tr>" +
-        "<tr><td style='padding:6px 0;color:#16A34A;font-size:16px;'>âœ“</td><td style='padding:6px 0;color:#334155;font-size:14px;'>Download GST invoices anytime</td></tr>" +
+        "<tr>" +
+        "<td style='padding:6px 0;color:#16A34A;font-size:16px;width:24px;font-weight:700;'>&#10003;</td>" +
+        "<td style='padding:6px 0;color:#334155;font-size:14px;'>Browse 60+ genuine software licenses</td>" +
+        "</tr>" +
+        "<tr>" +
+        "<td style='padding:6px 0;color:#16A34A;font-size:16px;font-weight:700;'>&#10003;</td>" +
+        "<td style='padding:6px 0;color:#334155;font-size:14px;'>Get instant email delivery with license keys</td>" +
+        "</tr>" +
+        "<tr>" +
+        "<td style='padding:6px 0;color:#16A34A;font-size:16px;font-weight:700;'>&#10003;</td>" +
+        "<td style='padding:6px 0;color:#334155;font-size:14px;'>Download GST invoices anytime</td>" +
+        "</tr>" +
         "</table>" +
         "<div style='text-align:center;margin:32px 0 8px;'>" +
         "<a href='" +
@@ -83,7 +94,7 @@ public class EmailService {
         "/products' style='display:inline-block;background:#2563EB;color:#FFFFFF;text-decoration:none;padding:14px 32px;border-radius:10px;font-weight:700;font-size:14px;'>Explore Products</a>" +
         "</div>";
 
-      helper.setText(layout("Welcome to Software Universe!", body), true);
+      helper.setText(layout("Welcome to Softora!", body), true);
       mailSender.send(message);
       log.info("Welcome email sent to {}", to);
     } catch (Exception e) {
@@ -91,6 +102,7 @@ public class EmailService {
     }
   }
 
+  // ================= ORDER CONFIRMATION EMAIL =================
   public void sendOrderConfirmation(
     Order order,
     List<LicenseKey> keys,
@@ -101,7 +113,7 @@ public class EmailService {
       MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
       helper.setFrom(fromEmail);
       helper.setTo(order.getCustomerEmail());
-      helper.setSubject("Order Confirmed â€” " + order.getOrderNumber());
+      helper.setSubject("Order Confirmed - " + order.getOrderNumber());
 
       StringBuilder keysHtml = new StringBuilder();
       for (LicenseKey k : keys) {
@@ -141,12 +153,12 @@ public class EmailService {
         "<p style='margin:0 0 12px;color:#0B1F3A;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;'>Your License Keys</p>" +
         keysHtml +
         "<div style='background:#F1F5F9;border-radius:12px;padding:16px 18px;margin:20px 0;'>" +
-        "<div style='color:#334155;font-size:13px;margin-bottom:6px;'>ðŸ’° <b>Total Paid:</b> <span style='color:#0B1F3A;font-size:15px;font-weight:700;'>â‚¹" +
+        "<div style='color:#334155;font-size:13px;margin-bottom:6px;'><b>Total Paid:</b> <span style='color:#0B1F3A;font-size:15px;font-weight:700;'>Rs. " +
         order.getTotal() +
         "</span></div>" +
-        "<div style='color:#334155;font-size:13px;'>ðŸ“Ž Your GST invoice is attached with this email.</div>" +
+        "<div style='color:#334155;font-size:13px;'>Your GST invoice is attached with this email.</div>" +
         "</div>" +
-        "<p style='margin:24px 0 0;padding-top:20px;border-top:1px solid #E2E8F0;color:#64748B;font-size:13px;'>Need help? Reply to this email or WhatsApp <b style='color:#0B1F3A;'>+91 9911611207</b>.</p>";
+        "<p style='margin:24px 0 0;padding-top:20px;border-top:1px solid #E2E8F0;color:#64748B;font-size:13px;'>Need help? Reply to this email.</p>";
 
       helper.setText(layout("Order Confirmed", body), true);
 
@@ -174,7 +186,7 @@ public class EmailService {
     }
   }
 
-  /** Wraps body content in a branded email layout. */
+  // ================= HELPERS =================
   private String layout(String title, String bodyContent) {
     return (
       "<!DOCTYPE html>" +
@@ -183,27 +195,23 @@ public class EmailService {
       "<table role='presentation' width='100%' cellspacing='0' cellpadding='0' style='background:#F1F5F9;padding:32px 16px;'>" +
       "<tr><td align='center'>" +
       "<table role='presentation' width='100%' cellspacing='0' cellpadding='0' style='max-width:560px;background:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(11,31,58,0.06);'>" +
-      // Header bar
       "<tr><td style='background:#0B1F3A;padding:24px 32px;'>" +
       "<div style='color:#FFFFFF;font-size:18px;font-weight:800;letter-spacing:-0.3px;'>Software <span style='color:#60A5FA;'>Universe</span></div>" +
       "</td></tr>" +
-      // Title
       "<tr><td style='padding:32px 32px 8px;'>" +
       "<h1 style='margin:0;color:#0B1F3A;font-size:22px;font-weight:800;letter-spacing:-0.3px;'>" +
       escapeHtml(title) +
       "</h1></td></tr>" +
-      // Body
       "<tr><td style='padding:16px 32px 32px;line-height:1.6;'>" +
       bodyContent +
       "</td></tr>" +
-      // Footer
       "<tr><td style='background:#F8FAFC;border-top:1px solid #E2E8F0;padding:20px 32px;text-align:center;'>" +
-      "<div style='color:#64748B;font-size:12px;'>â€” Team Software Universe</div>" +
+      "<div style='color:#64748B;font-size:12px;'>Team Softora</div>" +
       "</td></tr>" +
       "</table>" +
-      "<div style='color:#94A3B8;font-size:11px;margin-top:20px;'>Â© " +
+      "<div style='color:#94A3B8;font-size:11px;margin-top:20px;'>&copy; " +
       java.time.Year.now().getValue() +
-      " Software Universe. All rights reserved.</div>" +
+      " Softora. All rights reserved.</div>" +
       "</td></tr></table></body></html>"
     );
   }

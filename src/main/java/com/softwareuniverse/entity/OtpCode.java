@@ -32,7 +32,7 @@ public class OtpCode {
   private Boolean used = false;
 
   @Column(name = "purpose", length = 50)
-  private String purpose; // e.g. "FORGOT_PASSWORD", "LOGIN"
+  private String purpose;
 
   @Column(name = "created_at")
   private LocalDateTime createdAt;

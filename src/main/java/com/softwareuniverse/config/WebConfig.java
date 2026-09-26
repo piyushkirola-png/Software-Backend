@@ -15,12 +15,22 @@ public class WebConfig implements WebMvcConfigurer {
   @Override
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
     String uploadsPath = Paths.get(uploadsDir).toAbsolutePath().toString();
-    registry.addResourceHandler("/uploads/**").addResourceLocations("file:" + uploadsPath + "/");
+    registry
+      .addResourceHandler("/uploads/**")
+      .addResourceLocations("file:" + uploadsPath + "/");
 
-    String softwarePath = Paths.get("src/main/resources/software").toAbsolutePath().toString();
-    registry.addResourceHandler("/software/**").addResourceLocations("file:" + softwarePath + "/");
+    String softwarePath = Paths.get("src/main/resources/software")
+      .toAbsolutePath()
+      .toString();
+    registry
+      .addResourceHandler("/software/**")
+      .addResourceLocations("file:" + softwarePath + "/");
 
-    String assetsPath = Paths.get("src/main/resources/assets").toAbsolutePath().toString();
-    registry.addResourceHandler("/assets/**").addResourceLocations("file:" + assetsPath + "/");
+    String assetsPath = Paths.get("src/main/resources/assets")
+      .toAbsolutePath()
+      .toString();
+    registry
+      .addResourceHandler("/assets/**")
+      .addResourceLocations("file:" + assetsPath + "/");
   }
 }

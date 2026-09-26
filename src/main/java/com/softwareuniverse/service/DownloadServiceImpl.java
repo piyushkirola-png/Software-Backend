@@ -18,7 +18,9 @@ public class DownloadServiceImpl implements DownloadService {
   @Override
   @Transactional(readOnly = true)
   public List<DownloadResponse> getMyDownloads(Long userId) {
-    List<Order> orders = orderRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    List<Order> orders = orderRepository.findByUserIdOrderByCreatedAtDesc(
+      userId
+    );
 
     // Deduplicate by productId — latest purchase wins
     Map<Long, DownloadResponse> byProduct = new LinkedHashMap<>();
@@ -27,18 +29,21 @@ public class DownloadServiceImpl implements DownloadService {
       if (o.getStatus() != OrderStatus.SUCCESS) continue;
       for (OrderItem item : orderItemRepository.findByOrderId(o.getId())) {
         Product p = item.getProduct();
-        if (p.getDownloadFilePath() == null || p.getDownloadFilePath().isBlank()) continue;
+        if (
+          p.getDownloadFilePath() == null || p.getDownloadFilePath().isBlank()
+        ) continue;
 
         byProduct.putIfAbsent(
-            p.getId(),
-            DownloadResponse.builder()
-                .productId(p.getId())
-                .productTitle(p.getTitle())
-                .slug(p.getSlug())
-                .thumbnailUrl(p.getThumbnailUrl())
-                .downloadUrl(p.getDownloadFilePath())
-                .purchasedAt(o.getCreatedAt())
-                .build());
+          p.getId(),
+          DownloadResponse.builder()
+            .productId(p.getId())
+            .productTitle(p.getTitle())
+            .slug(p.getSlug())
+            .thumbnailUrl(p.getThumbnailUrl())
+            .downloadUrl(p.getDownloadFilePath())
+            .purchasedAt(o.getCreatedAt())
+            .build()
+        );
       }
     }
 

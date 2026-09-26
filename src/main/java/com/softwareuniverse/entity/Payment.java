@@ -50,7 +50,12 @@ public class Payment {
   private String currency = "INR";
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
+  @Column(
+    name = "status",
+    nullable = false,
+    length = 20,
+    columnDefinition = "VARCHAR(20)"
+  )
   private PaymentStatus status = PaymentStatus.PENDING;
 
   @Column(name = "failure_reason", length = 500)

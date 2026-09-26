@@ -41,7 +41,11 @@ public class Category {
   @Column(name = "is_active", nullable = false)
   private Boolean isActive = true;
 
-  @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @OneToMany(
+    mappedBy = "category",
+    cascade = CascadeType.ALL,
+    fetch = FetchType.LAZY
+  )
   private List<Product> products;
 
   @Column(name = "created_at")

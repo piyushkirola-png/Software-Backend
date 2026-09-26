@@ -6,6 +6,7 @@ import lombok.Data;
 
 @Data
 public class ProductRequest {
+
   private Long categoryId;
   private String title;
   private String slug;
@@ -28,6 +29,7 @@ public class ProductRequest {
 
   @Data
   public static class ProductVariantRequest {
+
     private String variantName;
     private BigDecimal mrp;
     private BigDecimal price;

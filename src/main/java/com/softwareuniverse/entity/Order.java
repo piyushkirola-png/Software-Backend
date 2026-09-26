@@ -49,7 +49,12 @@ public class Order {
   private BigDecimal total;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
+  @Column(
+    name = "status",
+    nullable = false,
+    length = 20,
+    columnDefinition = "VARCHAR(20)"
+  )
   private OrderStatus status = OrderStatus.PENDING;
 
   @Column(name = "customer_email", nullable = false, length = 150)
@@ -58,7 +63,6 @@ public class Order {
   @Column(name = "customer_phone", length = 20)
   private String customerPhone;
 
-  // ===== NEW =====
   @Column(name = "gst_number", length = 20)
   private String gstNumber;
 
@@ -66,10 +70,11 @@ public class Order {
   private String notes;
 
   @OneToMany(
-      mappedBy = "order",
-      cascade = CascadeType.ALL,
-      orphanRemoval = true,
-      fetch = FetchType.LAZY)
+    mappedBy = "order",
+    cascade = CascadeType.ALL,
+    orphanRemoval = true,
+    fetch = FetchType.LAZY
+  )
   private List<OrderItem> items = new ArrayList<>();
 
   @Column(name = "created_at")

@@ -25,7 +25,7 @@ public class ProductVariant {
   private Product product;
 
   @Column(name = "variant_name", nullable = false, length = 100)
-  private String variantName; // e.g. "1 PC / 1 Year", "3 PC / 1 Year"
+  private String variantName;
 
   @Column(name = "mrp", precision = 10, scale = 2)
   private BigDecimal mrp;

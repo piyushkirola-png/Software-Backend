@@ -23,8 +23,12 @@ public class ProductImageStorageService {
   private static final String PRODUCT_SUBDIR = "products";
   private static final String CATEGORY_SUBDIR = "categories";
 
-  private static final Set<String> ALLOWED_TYPES =
-      Set.of("image/png", "image/jpeg", "image/jpg", "image/webp");
+  private static final Set<String> ALLOWED_TYPES = Set.of(
+    "image/png",
+    "image/jpeg",
+    "image/jpg",
+    "image/webp"
+  );
   private static final long MAX_SIZE = 5 * 1024 * 1024L; // 5 MB
 
   public String storeProduct(MultipartFile file) {
@@ -43,7 +47,9 @@ public class ProductImageStorageService {
       throw new RuntimeException("File must be under 5 MB");
     }
     String contentType = file.getContentType();
-    if (contentType == null || !ALLOWED_TYPES.contains(contentType.toLowerCase())) {
+    if (
+      contentType == null || !ALLOWED_TYPES.contains(contentType.toLowerCase())
+    ) {
       throw new RuntimeException("Only PNG, JPG, or WEBP images allowed");
     }
 
@@ -55,7 +61,11 @@ public class ProductImageStorageService {
       String filename = UUID.randomUUID() + ext;
       Path target = dir.resolve(filename);
 
-      Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+      Files.copy(
+        file.getInputStream(),
+        target,
+        StandardCopyOption.REPLACE_EXISTING
+      );
       log.info("Stored {} image: {}", subdir, target);
 
       return "/uploads/" + subdir + "/" + filename;

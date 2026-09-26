@@ -13,12 +13,9 @@ public interface PaymentService {
 
   List<PaymentResponse> getPaymentsForOrder(Long userId, Long orderId);
 
-  /** Called by webhook / verify endpoint — marks payment + order SUCCESS. */
   void markSuccess(String gatewayPaymentId, String gatewayOrderId, String rawResponse);
 
-  /** Called by webhook / return endpoint — marks payment + order FAILED. */
   void markFailed(String gatewayOrderId, String reason);
 
-  /** Manually used in dev / testing — simulate success. */
   PaymentResponse simulateSuccess(Long userId, Long paymentId);
 }
