@@ -17,7 +17,6 @@ public class InvoiceNumberServiceImpl implements InvoiceNumberService {
   @Transactional
   public synchronized String generateNextInvoiceNumber() {
     LocalDate today = LocalDate.now();
-    // Indian FY: April 1 – March 31
     int fyStartYear =
       today.getMonthValue() >= Month.APRIL.getValue()
         ? today.getYear()

@@ -34,7 +34,7 @@ public class Product {
   @Column(columnDefinition = "TEXT")
   private String description;
 
-  @Column(name = "short_description", length = 500)
+  @Column(name = "short_description", columnDefinition = "TEXT")
   private String shortDescription;
 
   @Column(name = "seo_keywords", length = 500)
@@ -79,13 +79,25 @@ public class Product {
   @Column(name = "rating_count")
   private Integer ratingCount = 0;
 
-  @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @OneToMany(
+    mappedBy = "product",
+    cascade = CascadeType.ALL,
+    fetch = FetchType.LAZY
+  )
   private List<ProductVariant> variants;
 
-  @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @OneToMany(
+    mappedBy = "product",
+    cascade = CascadeType.ALL,
+    fetch = FetchType.LAZY
+  )
   private List<ProductImage> images;
 
-  @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @OneToMany(
+    mappedBy = "product",
+    cascade = CascadeType.ALL,
+    fetch = FetchType.LAZY
+  )
   private List<Review> reviews;
 
   @Column(name = "created_at")

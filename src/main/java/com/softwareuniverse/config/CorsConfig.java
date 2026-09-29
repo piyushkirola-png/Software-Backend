@@ -30,11 +30,8 @@ public class CorsConfig {
 
     source.registerCorsConfiguration("/api/webhooks/**", gateway);
     source.registerCorsConfiguration("/api/payments/payu/**", gateway);
-    source.registerCorsConfiguration("/api/payments/razorpay/**", gateway);
     source.registerCorsConfiguration("/api/payments/cashfree/**", gateway);
-    source.registerCorsConfiguration("/api/payments/sabpaisa/**", gateway);
 
-    // === Everything else ===
     CorsConfiguration strict = new CorsConfiguration();
     strict.setAllowedOriginPatterns(
       List.of(frontendUrl, "http://localhost:*", "http://127.0.0.1:*")
